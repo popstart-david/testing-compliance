@@ -62,7 +62,7 @@
   .msg.user{align-self:flex-end;flex-direction:row-reverse;}
   .av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;
     align-items:center;justify-content:center;font-size:11px;font-weight:600;}
-  .msg.bot .av{background:var(--navy);color:#fff;font-family:var(--display);}
+  .msg.bot .av{background:var(--teal);color:#fff;font-family:var(--display);}
   .msg.user .av{background:var(--teal-bg);color:var(--teal);}
   .bubble{padding:11px 14px;border-radius:13px;font-size:13.5px;line-height:1.55;}
   .msg.bot .bubble{background:var(--bot-bg);color:var(--ink);border-bottom-left-radius:4px;}
@@ -162,6 +162,55 @@
   .deliv-empty{text-align:center;padding:50px 20px;color:var(--faint);}
   .deliv-empty .di{font-family:var(--display);font-size:19px;color:var(--gray);margin-bottom:6px;}
   .deliv-empty .ds{font-size:13px;}
+
+  /* deliverable actions bar */
+  .deliv-actions{display:flex;justify-content:flex-end;gap:14px;padding:11px 22px;
+    border-bottom:1px solid var(--rule);background:#fafbfc;}
+  .deliv-actions a{font-size:12px;color:var(--navy);text-decoration:none;font-weight:500;
+    display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+  .deliv-actions a:hover{color:var(--teal);}
+  .deliv-actions a svg{width:13px;height:13px;}
+
+  /* logo in zone 1 title */
+  .ztitle.with-logo{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .ztitle .logo-slot{flex-shrink:0;}
+  .ztitle .logo-slot img{width:54px;height:54px;border-radius:8px;background:#fff;
+    border:1px solid var(--rule);padding:4px;object-fit:contain;}
+  .ztitle .logo-slot .logo-cap{font-size:9px;color:var(--faint);text-align:center;margin-top:3px;letter-spacing:.05em;}
+
+  /* Q&A 5-column section in deliverable */
+  .qa-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:10px;}
+  @media(max-width:900px){.qa-grid{grid-template-columns:repeat(2,1fr);}}
+  .qa-cell{background:#fafbfc;padding:12px 11px;display:flex;flex-direction:column;gap:5px;min-height:90px;}
+  .qa-cell .qk{font-family:var(--display);font-weight:600;color:var(--teal);font-size:13px;}
+  .qa-cell .qq{font-size:10.5px;color:var(--gray);line-height:1.35;}
+  .qa-cell .qv{font-family:var(--serif);font-weight:600;font-size:13.5px;color:var(--ink);
+    line-height:1.3;margin-top:auto;}
+
+  /* closing disclaimer */
+  .disclaimer{margin-top:30px;padding:18px 22px;background:#fafbfc;border:1px solid var(--rule);
+    border-left:3px solid var(--gray);border-radius:6px;}
+  .disclaimer h4{font-size:10.5px;font-weight:600;letter-spacing:.12em;color:var(--gray);
+    text-transform:uppercase;margin-bottom:9px;}
+  .disclaimer p{font-size:11.5px;color:var(--gray);line-height:1.55;margin-bottom:8px;}
+  .disclaimer p:last-child{margin-bottom:0;}
+  .disclaimer p b{color:var(--ink);}
+
+  /* coach mode input (post-delivery free chat) */
+  .coach-input{display:flex;gap:8px;margin-top:8px;padding-left:35px;max-width:92%;}
+  .coach-input input{flex:1;font-family:var(--sans);font-size:13px;padding:9px 12px;
+    border:1px solid var(--rule);border-radius:20px;background:#fff;}
+  .coach-input input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .coach-input button{font-family:var(--sans);font-size:12.5px;padding:8px 16px;border-radius:20px;
+    border:none;background:var(--teal);color:#fff;cursor:pointer;}
+  .coach-suggested{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding-left:35px;max-width:92%;}
+  .coach-suggested .label{font-size:10.5px;color:var(--faint);letter-spacing:.05em;
+    text-transform:uppercase;margin-bottom:2px;}
+  .coach-suggested .sbtn{font-family:var(--sans);font-size:12.5px;padding:8px 13px;border-radius:18px;
+    border:1px solid var(--rule);background:#fff;color:var(--navy);cursor:pointer;text-align:left;
+    transition:all .13s ease;}
+  .coach-suggested .sbtn:hover{border-color:var(--teal);background:var(--teal-bg);}
 
   .zone{padding:22px 0;border-bottom:1px solid var(--rule);}
   .zone:first-child{padding-top:4px;}
@@ -465,7 +514,7 @@ function botSay(html, cls, delay){
   });
 }
 function clearControls(){
-  document.querySelectorAll('.controls,.mode-wrap,.textfield').forEach(e=>e.remove());
+  document.querySelectorAll('.controls,.mode-wrap,.textfield,.coach-suggested,.coach-input').forEach(e=>e.remove());
 }
 
 /* ====================================================================
@@ -480,7 +529,16 @@ async function start(){
   };
   await botSay("Let's figure out what testing and compliance your product actually needs. Tell me what you're building and I'll identify the standards that apply, flag any gaps, and help you build a clear roadmap.", null, 400);
   await botSay(openings[S.stage], null, 750);
-  offerDepthMode();
+  // [2026-05-18] Depth-mode selection temporarily disabled — defaulting to Standard.
+  // Quick / Deep logic remains in place; just skip the user-facing prompt.
+  S.mode = "standard";
+  S.plan = ["P1","P2","P3","P4","P5"];
+  S.step = 0;
+  document.getElementById('mode-tag').textContent = "Standard mode";
+  setTimeout(async ()=>{
+    await botSay("I'll ask you five quick questions and build your roadmap.", null, 600);
+    askNext();
+  }, 350);
 }
 
 function offerDepthMode(){
@@ -762,14 +820,106 @@ async function generate(){
   const d = derive(); const rows = buildRows(d); const r = readiness(rows);
   const crit = rows.find(x=>x.status==='gap');
   await botSay(`Your compliance roadmap is ready. The biggest thing on your plate right now is <b>${crit?crit.n:'lab certification'}</b>. Want to talk through what that means for your timeline, or figure out which lab to reach out to first?`, null, 900);
-  // open the deliverable tab for them
-  const row = document.createElement('div');
-  row.className='controls';
+
+  // Open the deliverable tab for them, then enter Coach Mode
+  const ctaRow = document.createElement('div');
+  ctaRow.className='controls';
   const v=document.createElement('button');
   v.className='btn primary'; v.textContent='View full roadmap';
   v.onclick=()=>switchTab('deliv');
-  row.appendChild(v);
-  chat.appendChild(row); scrollDown();
+  ctaRow.appendChild(v);
+  chat.appendChild(ctaRow); scrollDown();
+
+  // enter Coach Mode
+  setTimeout(()=> enterCoachMode(), 1100);
+}
+
+/* ====================================================================
+   COACH / BRAINSTORM MODE — opens automatically after deliverable
+   Script §8 specifies expected topics. Responses below are canned,
+   thoughtful, and stay within the agent's boundaries:
+   no specific lab recommendations, no regulatory interpretation.
+   ==================================================================== */
+const COACH_TOPICS = [
+  { label:"What does CE Mark actually require?",
+    answer:"CE Mark is required for products sold in the European Union. At a high level, it confirms a product meets EU safety, health, and environmental requirements — the specific directives that apply depend on what your product does. For most consumer goods, you'll need a Declaration of Conformity, technical documentation, and testing against the applicable EU standards (sometimes by a notified body, sometimes self-declared). The right next step is identifying which EU directives apply to your specific product category — a compliance professional can do that quickly." },
+  { label:"Does my product need FDA approval or just FDA registration?",
+    answer:"Those are very different things, and people mix them up. <b>Registration</b> is administrative — you tell the FDA you exist (typical for food facilities and cosmetics). <b>Approval</b> is a formal review where the FDA evaluates safety and efficacy before you can sell (drugs, medical devices, food additives). Most consumer products fall into registration or notification categories, not approval. The category you're in determines which path applies — and it's the kind of question where a qualified regulatory professional will save you significant time." },
+  { label:"How long does certification typically take?",
+    answer:"For your category, the benchmark is in the deliverable above — but the real variable is lab queue time, not testing time itself. Most accredited labs are 4–10 weeks out before they can start, then add the testing duration on top. The single most useful thing you can do this week is reach out to two or three accredited labs, get on their calendar, and ask about current lead times. That conversation is free and it's the longest pole in your launch tent." },
+  { label:"What happens if I sell without the required certifications?",
+    answer:"The short answer: it depends on the standard, the market, and who notices. Some standards are mandatory and enforced (CPSIA for children's products, FCC for electronics that emit signals) — selling without them can trigger fines, recalls, and platform delisting. Others are voluntary but expected by retailers and marketplaces — selling without them won't get you in legal trouble but it'll close doors. The honest framing: certification is rarely about avoiding trouble; it's about being a credible business that retailers and customers can trust. This is also a question worth running by a qualified compliance professional for your specific category." },
+  { label:"Can I do any of this testing in-house?",
+    answer:"Some, yes — functional testing, durability testing, and user testing are all things you should be doing in-house regardless. What you cannot do in-house is anything that requires an <b>accredited lab</b> for a certification. For most product categories, the safety-standard testing (ASTM, CPSC, etc.) has to be done by a third-party lab whose accreditation the regulator recognizes. A good rule of thumb: in-house testing makes your product better; accredited-lab testing makes it sellable." }
+];
+
+function enterCoachMode(){
+  document.getElementById('mode-tag').textContent = "Coach mode";
+  botSay("While you look it over, I can answer follow-up questions, walk through what any of this means for your specific situation, or help you figure out where to start. What's on your mind?", null, 700)
+    .then(()=> renderCoachControls());
+}
+
+function renderCoachControls(){
+  clearControls();
+  const suggested = document.createElement('div');
+  suggested.className = 'coach-suggested';
+  suggested.innerHTML = `<div class="label">Suggested questions</div>`;
+  COACH_TOPICS.forEach(topic=>{
+    const btn = document.createElement('button');
+    btn.className = 'sbtn'; btn.textContent = topic.label;
+    btn.onclick = ()=> handleCoachTopic(topic);
+    suggested.appendChild(btn);
+  });
+  chat.appendChild(suggested);
+
+  const inp = document.createElement('div');
+  inp.className = 'coach-input';
+  const txt = document.createElement('input');
+  txt.placeholder = "Or type your own question…";
+  const send = document.createElement('button'); send.textContent = "Send";
+  const submit = ()=>{
+    const q = txt.value.trim();
+    if(!q) return;
+    userMsg(q);
+    txt.value = '';
+    suggested.remove(); inp.remove();
+    handleCoachFreeText(q);
+  };
+  send.onclick = submit;
+  txt.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+  inp.appendChild(txt); inp.appendChild(send);
+  chat.appendChild(inp);
+  scrollDown();
+  txt.focus();
+}
+
+async function handleCoachTopic(topic){
+  // remove existing controls
+  document.querySelectorAll('.coach-suggested,.coach-input').forEach(e=>e.remove());
+  userMsg(topic.label);
+  await botSay(topic.answer, null, 900);
+  renderCoachControls();    // re-offer suggestions + input
+}
+
+async function handleCoachFreeText(q){
+  // simple keyword routing — match to known topic if obvious
+  const lc = q.toLowerCase();
+  const matched = COACH_TOPICS.find(t=>{
+    const k = t.label.toLowerCase();
+    if(lc.includes('ce mark')||lc.includes('europe')) return k.includes('ce mark');
+    if(lc.includes('fda')) return k.includes('fda');
+    if(lc.includes('how long')||lc.includes('timeline')||lc.includes('how much time')) return k.includes('how long');
+    if(lc.includes('without')||lc.includes('skip')||lc.includes('happens if')) return k.includes('what happens');
+    if(lc.includes('in-house')||lc.includes('in house')||lc.includes('myself')||lc.includes('on my own')) return k.includes('in-house');
+    return false;
+  });
+  if(matched){
+    await botSay(matched.answer, null, 900);
+  } else {
+    // generic thoughtful acknowledgment that stays in-scope
+    await botSay("That's a good question. The honest answer: I can help you think through it at a high level, but the specific decision is really one to walk through with a compliance professional who knows your category and target market. What I can tell you is that for your situation — <b>"+S.stage+"</b>, <b>"+(derive().cat)+"</b>, selling in <b>"+derive().markets.join(' and ')+"</b> — the items on your roadmap above are the ones to focus on first. Anything in particular about them you want to dig into?", null, 1100);
+  }
+  renderCoachControls();
 }
 
 /* ====================================================================
@@ -981,7 +1131,6 @@ function renderCards(){
   tv.innerHTML=`<div class="cards-intro">Your roadmap builds here, stage by stage, once you've answered the questions.</div>`+
     CARD_DEFS.map(c=>`
       <div class="card empty" id="card-${c.n.replace(' ','')}">
-        <div class="cnum">${c.n}</div>
         <div class="ctitle">${c.t}</div>
         <div class="cbody">
           <div class="placeholder-bar"></div>
@@ -996,6 +1145,7 @@ function cardContent(d,rows,r){
   const synthesis = `<b>${S.stage}, ${S.industry}.</b> You're building in the ${d.cat} category, selling in ${d.markets.join(' & ')} via ${d.channel.toLowerCase()}. Certification is ${d.cert.toLowerCase()}.`;
   const answerRows = ["P1","P2","P3","P4","P5"].map(k=>{
     const p=PROMPTS[k]; const a=S.answers[k];
+    const qLabel = "Q" + k.slice(1);     // UI label only — canonical key stays P1..P5
     let val;
     if(a===null) val='<span style="color:var(--faint);font-style:italic;">—</span>';
     else if(Array.isArray(a)){
@@ -1004,14 +1154,14 @@ function cardContent(d,rows,r){
         return o?(typeof o==='string'?o:o.l):v;
       }).join(', ') : 'None';
     } else val=a;
-    return `<div style="display:grid;grid-template-columns:30px 1fr;gap:8px;margin-bottom:7px;">
-      <span style="font-family:var(--display);font-weight:600;color:var(--teal);font-size:12px;">${k}</span>
+    return `<div style="display:grid;grid-template-columns:32px 1fr;gap:8px;margin-bottom:7px;">
+      <span style="font-family:var(--display);font-weight:600;color:var(--teal);font-size:13px;">${qLabel}</span>
       <span><span style="color:var(--gray);font-size:12px;">${p.q}</span><br>
       <b style="font-size:13px;">${val}</b></span></div>`;
   }).join('');
   const card1 = `${synthesis}
-    <div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--rule);">
-      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;margin-bottom:9px;">Your answers</div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);">
+      <div style="font-family:var(--display);font-weight:500;font-size:16px;color:var(--navy);margin-bottom:10px;">Your answers</div>
       ${answerRows}
     </div>`;
   return {
@@ -1071,13 +1221,49 @@ function renderDeliv(){
   const addons=d.markets.filter(m=>MARKET_ADDON[m]).map(m=>MARKET_ADDON[m]);
 
   tv.innerHTML=`
+    <div class="deliv-actions">
+      <a href="#" onclick="event.preventDefault()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        Edit</a>
+      <a href="#" onclick="event.preventDefault()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download to PDF</a>
+    </div>
+    <div style="padding:14px 22px 0;">
     <div class="zone">
       <div class="zlabel">Your profile snapshot</div>
-      <div class="ztitle"><span class="znum">1</span>Here's what we built this roadmap around</div>
+      <div class="ztitle with-logo">
+        <span><span class="znum">1</span>Here's what we built this roadmap around</span>
+        <span class="logo-slot">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSI+CjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjM2IiBmaWxsPSIjMWYzYTVmIi8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIwLjQiLz4KPHRleHQgeD0iNDAiIHk9IjUwIiBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI2MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmYiPllCPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjYiIGxldHRlci1zcGFjaW5nPSIxIj5ZT1VSIEJSQU5EPC90ZXh0Pgo8L3N2Zz4=" alt="Your brand logo" title="In the production app, your logo appears here."/>
+          <div class="logo-cap">Your logo</div>
+        </span>
+      </div>
       <div class="snapshot">
         ${[["Business stage",S.stage],["Product category",d.cat],["Target market",d.markets.join(", ")],
            ["Sales channel",d.channel],["Certification status",d.cert]]
           .map(s=>`<div class="snap-cell"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}
+      </div>
+      <div style="margin-top:18px;">
+        <div class="bench-label">Your answers</div>
+        <div class="qa-grid">
+          ${["P1","P2","P3","P4","P5"].map(k=>{
+            const p=PROMPTS[k]; const a=S.answers[k];
+            const qLabel = "Q"+k.slice(1);
+            let val;
+            if(a===null) val='<span style="color:var(--faint);font-style:italic;">—</span>';
+            else if(Array.isArray(a)){
+              val = a.length ? a.map(v=>{
+                const o=p.options.find(x=>(typeof x==='string'?x:x.v)===v);
+                return o?(typeof o==='string'?o:o.l):v;
+              }).join(', ') : 'None';
+            } else val=a;
+            return `<div class="qa-cell">
+              <div class="qk">${qLabel}</div>
+              <div class="qq">${p.q}</div>
+              <div class="qv">${val}</div></div>`;
+          }).join('')}
+        </div>
       </div>
     </div>
 
@@ -1150,6 +1336,14 @@ function renderDeliv(){
       <div class="terms-grid">
         ${relevantTerms(rows).map(t=>`<div class="term"><b>${t}</b> — ${GLOSSARY[t]}</div>`).join('')}
       </div>
+    </div>
+
+    <div class="disclaimer">
+      <h4>Important — please read</h4>
+      <p>This roadmap provides general information only — <b>not legal, regulatory, or professional advice</b>. Compliance standards, certification timelines, and lab costs change frequently and may not reflect current conditions. We make no guarantees about the accuracy, completeness, or outcomes of any information provided. Always verify requirements directly with the relevant regulatory body or accredited lab, and consult a qualified compliance professional before making decisions.</p>
+      <p>For highly regulated categories — medical devices, food, and children's products in particular — this roadmap is a starting point only. A qualified regulatory professional should review your specific product, materials, and target markets before you finalize your compliance plan.</p>
+    </div>
+
     </div>`;
 }
 function readinessNarr(r){
