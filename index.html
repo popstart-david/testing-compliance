@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Popstart — Testing & Compliance Checker</title>
+<title>Popstart — Testing & Compliance Checker v19.445</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Newsreader:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
@@ -28,11 +28,18 @@
   .topbar{
     background:var(--paper);border-bottom:1px solid var(--rule);
     padding:11px 22px;display:flex;align-items:center;gap:26px;flex-shrink:0;
+    flex-wrap:wrap;
   }
   .topbar .logo{font-weight:600;letter-spacing:.13em;font-size:14px;color:var(--navy);}
   .topbar .agent-name{font-size:12px;color:var(--faint);border-left:1px solid var(--rule);
     padding-left:26px;}
-  .topbar .profile-fields{margin-left:auto;display:flex;gap:16px;align-items:center;}
+  .topbar .profile-fields{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  @media(max-width:780px){
+    .topbar{padding:10px 14px;gap:12px;}
+    .topbar .agent-name{border-left:none;padding-left:0;flex-basis:100%;font-size:11px;margin-top:-4px;}
+    .topbar .profile-fields{margin-left:0;width:100%;gap:10px;}
+    .pf select{font-size:13px;padding:6px 8px;}
+  }
   .pf{display:flex;flex-direction:column;gap:2px;}
   .pf label{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;}
   .pf select{font-family:var(--sans);font-size:12px;color:var(--ink);padding:4px 7px;
@@ -73,6 +80,9 @@
   .bubble.coach{background:#fff;border:1px solid var(--amber);border-left:3px solid var(--amber);}
   .bubble.coach .ctag{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;
     text-transform:uppercase;color:var(--amber);margin-bottom:4px;}
+  .authored-tag{display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--faint);border:1px solid var(--rule);background:#fff;
+    padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;cursor:help;}
 
   /* interactive controls inside chat */
   .controls{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;align-self:flex-start;
@@ -111,6 +121,7 @@
   .tab{font-family:var(--sans);font-size:12px;font-weight:500;padding:8px 15px;cursor:pointer;
     border:1px solid var(--rule);border-bottom:none;border-radius:8px 8px 0 0;
     background:#e4e7ea;color:var(--gray);position:relative;top:1px;}
+  .tab:focus{outline:2px solid var(--teal);outline-offset:-2px;}
   .tab.active{background:var(--paper);color:var(--navy);font-weight:600;border-bottom:1px solid var(--paper);}
   .tab .badge-n{font-size:10px;background:var(--navy);color:#fff;border-radius:999px;
     padding:1px 6px;margin-left:5px;}
@@ -303,7 +314,7 @@
   <div class="profile-fields">
     <span class="scope-warn" id="scope-warn">Module 5 is scoped to physical products — some advice may not apply.</span>
     <div class="pf">
-      <label>Business stage</label>
+      <label for="pf-stage">Business stage</label>
       <select id="pf-stage">
         <option>Just Exploring</option>
         <option selected>Pre-Launch</option>
@@ -311,7 +322,7 @@
       </select>
     </div>
     <div class="pf">
-      <label>Industry</label>
+      <label for="pf-industry">Industry</label>
       <select id="pf-industry">
         <option selected>Home &amp; Living</option>
         <option>Consumer Tech</option>
@@ -323,8 +334,8 @@
       </select>
     </div>
     <div class="pf">
-      <label>Business type</label>
-      <span class="derived" id="pf-type">Product</span>
+      <label id="pf-type-label">Business type</label>
+      <span class="derived" id="pf-type" aria-labelledby="pf-type-label">Product</span>
     </div>
   </div>
 </div>
@@ -335,24 +346,24 @@
   <!-- CHAT -->
   <div class="chat-pane">
     <div class="chat-head">
-      <span class="dot"></span>
-      <span class="t">Compliance coach v19.4</span>
-      <span class="mode-tag" id="mode-tag">Activity mode</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span class="t">Compliance coach</span>
+      <span class="mode-tag" id="mode-tag" role="status" aria-live="polite">Activity mode</span>
     </div>
-    <div class="chat-scroll" id="chat"></div>
+    <div class="chat-scroll" id="chat" role="log" aria-live="polite" aria-label="Conversation with the compliance coach"></div>
   </div>
 
   <!-- CANVAS -->
   <div class="canvas-pane">
-    <div class="tabs">
-      <div class="tab active" data-tab="iv">Your Answers</div>
-      <div class="tab" data-tab="cards">Stages <span class="badge-n" id="cards-count">0/8</span></div>
-      <div class="tab" data-tab="deliv">Deliverable</div>
+    <div class="tabs" role="tablist" aria-label="Output surfaces">
+      <button class="tab active" data-tab="iv" role="tab" aria-selected="true" aria-controls="tv-iv" id="tab-iv">Your Answers</button>
+      <button class="tab" data-tab="cards" role="tab" aria-selected="false" aria-controls="tv-cards" id="tab-cards">Stages <span class="badge-n" id="cards-count">0/8</span></button>
+      <button class="tab" data-tab="deliv" role="tab" aria-selected="false" aria-controls="tv-deliv" id="tab-deliv">Deliverable</button>
     </div>
     <div class="canvas-body">
-      <div class="tabview active" id="tv-iv"></div>
-      <div class="tabview" id="tv-cards"></div>
-      <div class="tabview" id="tv-deliv"></div>
+      <div class="tabview active" id="tv-iv" role="tabpanel" aria-labelledby="tab-iv"></div>
+      <div class="tabview" id="tv-cards" role="tabpanel" aria-labelledby="tab-cards"></div>
+      <div class="tabview" id="tv-deliv" role="tabpanel" aria-labelledby="tab-deliv"></div>
     </div>
   </div>
 
@@ -819,7 +830,16 @@ async function generate(){
   renderDeliv();
   const d = derive(); const rows = buildRows(d); const r = readiness(rows);
   const crit = rows.find(x=>x.status==='gap');
-  await botSay(`Your compliance roadmap is ready. The biggest thing on your plate right now is <b>${crit?crit.n:'lab certification'}</b>. Want to talk through what that means for your timeline, or figure out which lab to reach out to first?`, null, 900);
+  let closingLine;
+  if(crit){
+    closingLine = `Your compliance roadmap is ready. The biggest thing on your plate right now is <b>${crit.n}</b>. Want to talk through what that means for your timeline, or figure out which lab to reach out to first?`;
+  } else if(rows.some(x=>x.status==='prog')){
+    const inProg = rows.find(x=>x.status==='prog');
+    closingLine = `Your compliance roadmap is ready. You're in pretty good shape — the main thing still in motion is <b>${inProg.n}</b>. Want to talk through finishing it, or look at anything else?`;
+  } else {
+    closingLine = `Your compliance roadmap is ready — and you're in great shape. Every standard that applies to you is complete. Want to talk through how to keep it that way, or anything else on your mind?`;
+  }
+  await botSay(closingLine, null, 900);
 
   // Open the deliverable tab for them, then enter Coach Mode
   const ctaRow = document.createElement('div');
@@ -842,14 +862,19 @@ async function generate(){
    ==================================================================== */
 const COACH_TOPICS = [
   { label:"What does CE Mark actually require?",
+    keywords:["ce mark","ce ","european","europe","eu market","eu certif","sell in eu"],
     answer:"CE Mark is required for products sold in the European Union. At a high level, it confirms a product meets EU safety, health, and environmental requirements — the specific directives that apply depend on what your product does. For most consumer goods, you'll need a Declaration of Conformity, technical documentation, and testing against the applicable EU standards (sometimes by a notified body, sometimes self-declared). The right next step is identifying which EU directives apply to your specific product category — a compliance professional can do that quickly." },
   { label:"Does my product need FDA approval or just FDA registration?",
+    keywords:["fda","approval","register","registration","cosmetic","food","drug","medical device"],
     answer:"Those are very different things, and people mix them up. <b>Registration</b> is administrative — you tell the FDA you exist (typical for food facilities and cosmetics). <b>Approval</b> is a formal review where the FDA evaluates safety and efficacy before you can sell (drugs, medical devices, food additives). Most consumer products fall into registration or notification categories, not approval. The category you're in determines which path applies — and it's the kind of question where a qualified regulatory professional will save you significant time." },
   { label:"How long does certification typically take?",
+    keywords:["how long","timeline","how much time","duration","take to","wait","lead time","queue"],
     answer:"For your category, the benchmark is in the deliverable above — but the real variable is lab queue time, not testing time itself. Most accredited labs are 4–10 weeks out before they can start, then add the testing duration on top. The single most useful thing you can do this week is reach out to two or three accredited labs, get on their calendar, and ask about current lead times. That conversation is free and it's the longest pole in your launch tent." },
   { label:"What happens if I sell without the required certifications?",
+    keywords:["without","skip","happens if","what if","no certif","not certified","unce","risk of","penalty","fine"],
     answer:"The short answer: it depends on the standard, the market, and who notices. Some standards are mandatory and enforced (CPSIA for children's products, FCC for electronics that emit signals) — selling without them can trigger fines, recalls, and platform delisting. Others are voluntary but expected by retailers and marketplaces — selling without them won't get you in legal trouble but it'll close doors. The honest framing: certification is rarely about avoiding trouble; it's about being a credible business that retailers and customers can trust. This is also a question worth running by a qualified compliance professional for your specific category." },
   { label:"Can I do any of this testing in-house?",
+    keywords:["in-house","in house","myself","on my own","diy","do it myself","internally","at home"],
     answer:"Some, yes — functional testing, durability testing, and user testing are all things you should be doing in-house regardless. What you cannot do in-house is anything that requires an <b>accredited lab</b> for a certification. For most product categories, the safety-standard testing (ASTM, CPSC, etc.) has to be done by a third-party lab whose accreditation the regulator recognizes. A good rule of thumb: in-house testing makes your product better; accredited-lab testing makes it sellable." }
 ];
 
@@ -894,29 +919,23 @@ function renderCoachControls(){
 }
 
 async function handleCoachTopic(topic){
-  // remove existing controls
   document.querySelectorAll('.coach-suggested,.coach-input').forEach(e=>e.remove());
   userMsg(topic.label);
-  await botSay(topic.answer, null, 900);
-  renderCoachControls();    // re-offer suggestions + input
+  await botSay(topic.answer + ' <span class="authored-tag" title="Prototype: this answer is authored, not generated live. Production agent will use the same boundaries but respond dynamically.">authored answer</span>', null, 900);
+  renderCoachControls();
 }
 
 async function handleCoachFreeText(q){
-  // simple keyword routing — match to known topic if obvious
   const lc = q.toLowerCase();
-  const matched = COACH_TOPICS.find(t=>{
-    const k = t.label.toLowerCase();
-    if(lc.includes('ce mark')||lc.includes('europe')) return k.includes('ce mark');
-    if(lc.includes('fda')) return k.includes('fda');
-    if(lc.includes('how long')||lc.includes('timeline')||lc.includes('how much time')) return k.includes('how long');
-    if(lc.includes('without')||lc.includes('skip')||lc.includes('happens if')) return k.includes('what happens');
-    if(lc.includes('in-house')||lc.includes('in house')||lc.includes('myself')||lc.includes('on my own')) return k.includes('in-house');
-    return false;
-  });
-  if(matched){
-    await botSay(matched.answer, null, 900);
+  // each topic carries its own keyword list — pick the topic with the most keyword hits
+  let best = null, bestScore = 0;
+  for(const topic of COACH_TOPICS){
+    const score = (topic.keywords||[]).reduce((n,kw)=> n + (lc.includes(kw)?1:0), 0);
+    if(score > bestScore){ best = topic; bestScore = score; }
+  }
+  if(best){
+    await botSay(best.answer + ' <span class="authored-tag" title="Prototype: this answer is authored, not generated live.">authored answer</span>', null, 900);
   } else {
-    // generic thoughtful acknowledgment that stays in-scope
     await botSay("That's a good question. The honest answer: I can help you think through it at a high level, but the specific decision is really one to walk through with a compliance professional who knows your category and target market. What I can tell you is that for your situation — <b>"+S.stage+"</b>, <b>"+(derive().cat)+"</b>, selling in <b>"+derive().markets.join(' and ')+"</b> — the items on your roadmap above are the ones to focus on first. Anything in particular about them you want to dig into?", null, 1100);
   }
   renderCoachControls();
@@ -976,9 +995,18 @@ function coachMoments(d){
     if(noDoc)
       c.push({q:"If a retailer asked for your compliance documentation today, how long would it take you to pull it together? That answer tells you exactly what to do next.",src:"Already in business — documentation"});
   }
-  const fb=[
+  // Launch-Ready fallbacks (when nothing else triggers — only happens when all standards are Complete)
+  const launchReadyFallback = [
+    {q:"You're launch-ready on paper — but compliance drifts. When a material, supplier, or design changes, that's the moment to re-test, not six months later. What's your trigger for revisiting these?",src:"Launch ready — staying current"},
+    {q:"Your documentation is the asset retailers and partners will ask for. Is it organised so a buyer could review it in ten minutes, or scattered across drives and inboxes? Tightening that up now saves you the scramble later.",src:"Launch ready — documentation hygiene"}
+  ];
+  const generalFallback = [
     {q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review.",src:"All stages — user validation"},
-    {q:"Do you know which lab you're sending your product to, and how long their queue is right now? Start that conversation before you need it.",src:"All stages — certification lead time"}];
+    {q:"Do you know which lab you're sending your product to, and how long their queue is right now? Start that conversation before you need it.",src:"All stages — certification lead time"}
+  ];
+  // Decide which fallback set to use
+  const allComplete = d.cert === "Complete" && d.testing.includes("user") && d.testing.includes("documentation");
+  const fb = allComplete ? launchReadyFallback : generalFallback;
   let i=0;
   while(c.length<2&&i<fb.length){ if(!c.find(x=>x.src===fb[i].src))c.push(fb[i]); i++; }
   return c.slice(0,2);
@@ -1024,7 +1052,7 @@ function relevantTerms(rows){
    ==================================================================== */
 function srcTag(s){
   if(!s) return '';
-  const map={user:['src-user','User-entered'],default:['src-default','Default'],example:['src-example','From example']};
+  const map={user:['src-user','User-entered'],default:['src-default','Default-substituted'],example:['src-example','From example']};
   const [cls,lbl]=map[s];
   return `<span class="iv-src ${cls}">${lbl}</span>`;
 }
@@ -1089,6 +1117,8 @@ function openEditor(k){
     p.options.forEach(o=>{
       const v=typeof o==='string'?o:o.v;
       const l=typeof o==='string'?o:o.l;
+      // For P3, 'none' is the in-chat exclusive marker; we hide it in editor
+      // and emulate exclusivity if a future option uses the same pattern.
       if(v==='none')return;
       const c=document.createElement('button');
       c.className='iv-chip'+(cur.includes(v)?' on':'');
@@ -1097,7 +1127,10 @@ function openEditor(k){
         const idx=cur.indexOf(v);
         if(idx>-1)cur.splice(idx,1); else cur.push(v);
         c.classList.toggle('on');
-        S.answers[k]=cur.slice(); S.sources[k]='user';
+        // Keep canonical answers consistent with the prompt's domain
+        // (no 'none' token should ever appear alongside real selections)
+        S.answers[k]=cur.filter(x=>x!=='none').slice();
+        S.sources[k]='user';
         regenAll();
       };
       wrap.appendChild(c);
@@ -1362,7 +1395,11 @@ function readinessNarr(r){
    TABS + PROFILE HEADER
    ==================================================================== */
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(t=>{
+    const active = t.dataset.tab===name;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', active?'true':'false');
+  });
   document.querySelectorAll('.tabview').forEach(v=>v.classList.remove('active'));
   document.getElementById('tv-'+name).classList.add('active');
 }
