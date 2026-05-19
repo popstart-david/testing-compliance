@@ -296,8 +296,8 @@
   <!-- CANVAS -->
   <div class="canvas-pane">
     <div class="tabs">
-      <div class="tab active" data-tab="iv">Input Variables</div>
-      <div class="tab" data-tab="cards">Cards <span class="badge-n" id="cards-count">0/8</span></div>
+      <div class="tab active" data-tab="iv">Your Answers</div>
+      <div class="tab" data-tab="cards">Stages <span class="badge-n" id="cards-count">0/8</span></div>
       <div class="tab" data-tab="deliv">Deliverable</div>
     </div>
     <div class="canvas-body">
@@ -907,7 +907,7 @@ function renderIV(){
       </div>
     </div>`;
   });
-  tv.innerHTML=`<div class="iv-intro">Every answer is recorded here as you go. After your roadmap is built, these become editable — change one and the roadmap regenerates.</div>${rows}`;
+  tv.innerHTML=`<div class="iv-intro">Every answer you give is recorded here as you go. After your roadmap is built, these become editable — change one and the roadmap regenerates.</div>${rows}`;
   tv.querySelectorAll('[data-edit]').forEach(el=>{
     el.onclick=()=>openEditor(el.dataset.edit);
   });
@@ -978,7 +978,7 @@ const CARD_DEFS = [
 ];
 function renderCards(){
   const tv=document.getElementById('tv-cards');
-  tv.innerHTML=`<div class="cards-intro">Your roadmap builds here, one card at a time, once you've answered the questions.</div>`+
+  tv.innerHTML=`<div class="cards-intro">Your roadmap builds here, stage by stage, once you've answered the questions.</div>`+
     CARD_DEFS.map(c=>`
       <div class="card empty" id="card-${c.n.replace(' ','')}">
         <div class="cnum">${c.n}</div>
@@ -992,8 +992,30 @@ function renderCards(){
 }
 function cardContent(d,rows,r){
   const cm=coachMoments(d);
+  // Card 1 — Your Situation: prose synthesis + the five prompts and answers
+  const synthesis = `<b>${S.stage}, ${S.industry}.</b> You're building in the ${d.cat} category, selling in ${d.markets.join(' & ')} via ${d.channel.toLowerCase()}. Certification is ${d.cert.toLowerCase()}.`;
+  const answerRows = ["P1","P2","P3","P4","P5"].map(k=>{
+    const p=PROMPTS[k]; const a=S.answers[k];
+    let val;
+    if(a===null) val='<span style="color:var(--faint);font-style:italic;">—</span>';
+    else if(Array.isArray(a)){
+      val = a.length ? a.map(v=>{
+        const o=p.options.find(x=>(typeof x==='string'?x:x.v)===v);
+        return o?(typeof o==='string'?o:o.l):v;
+      }).join(', ') : 'None';
+    } else val=a;
+    return `<div style="display:grid;grid-template-columns:30px 1fr;gap:8px;margin-bottom:7px;">
+      <span style="font-family:var(--display);font-weight:600;color:var(--teal);font-size:12px;">${k}</span>
+      <span><span style="color:var(--gray);font-size:12px;">${p.q}</span><br>
+      <b style="font-size:13px;">${val}</b></span></div>`;
+  }).join('');
+  const card1 = `${synthesis}
+    <div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--rule);">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;margin-bottom:9px;">Your answers</div>
+      ${answerRows}
+    </div>`;
   return {
-    Card1:`<b>${S.stage}, ${S.industry}.</b> You're building in the ${d.cat} category, selling in ${d.markets.join(' & ')} via ${d.channel.toLowerCase()}. Certification is ${d.cert.toLowerCase()}.`,
+    Card1:card1,
     Card2:`${rows.length} standards apply to you. ${r.gaps} gap${r.gaps!==1?'s':''}, ${r.prog} in progress, ${r.complete} complete.`,
     Card3:`${CATEGORIES[d.cat].timeline} to certification · ${CATEGORIES[d.cat].cost} typical lab cost · ${CATEGORIES[d.cat].users} for user testing.`,
     Card4:`<b>${r.pct}% ready — ${r.tier}.</b> ${r.gaps>0?'Lab certification and channel documentation are the critical path.':'Your compliance work is in good shape.'}`,
@@ -1026,7 +1048,7 @@ async function populateCardsSequentially(){
     el.classList.remove('empty');
     el.querySelector('.cbody').innerHTML=content[c.n.replace(' ','')];
     el.classList.add('flash');
-    document.getElementById('cards-count').textContent=`${i+1}/8`;
+    document.getElementById('cards-count').textContent=`${i+1}/${CARD_DEFS.length}`;
   }
 }
 
