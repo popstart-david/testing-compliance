@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Popstart — Compliance Readiness Roadmap</title>
+<title>Popstart — Testing & Compliance Checker</title>
 <style>
-  /* ============ fonts & tokens ============ */
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Newsreader:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
   :root{
@@ -14,327 +13,305 @@
     --amber:#b26b00; --amber-bg:#fbefd9;
     --red:#b23b3b; --red-bg:#fbecec;
     --ink:#23272e; --gray:#5a626e; --faint:#8b929c;
-    --rule:#d9dfe6; --paper:#ffffff; --shell:#eef0f2;
+    --rule:#d9dfe6; --paper:#ffffff; --shell:#eceef1;
+    --bot-bg:#f5f6f8;
     --display:'Fraunces',Georgia,serif;
     --serif:'Newsreader',Georgia,serif;
     --sans:'IBM Plex Sans',system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    background:var(--shell); color:var(--ink);
-    font-family:var(--sans); line-height:1.55;
-    -webkit-font-smoothing:antialiased;
-    padding:32px 18px 80px;
-  }
+  html,body{height:100%;}
+  body{background:var(--shell);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
 
-  /* ============ layout shell ============ */
-  .wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:26px;align-items:start;}
-  @media(max-width:880px){.wrap{grid-template-columns:1fr;}}
+  /* ============ profile header bar ============ */
+  .topbar{
+    background:var(--paper);border-bottom:1px solid var(--rule);
+    padding:11px 22px;display:flex;align-items:center;gap:26px;flex-shrink:0;
+  }
+  .topbar .logo{font-weight:600;letter-spacing:.13em;font-size:14px;color:var(--navy);}
+  .topbar .agent-name{font-size:12px;color:var(--faint);border-left:1px solid var(--rule);
+    padding-left:26px;}
+  .topbar .profile-fields{margin-left:auto;display:flex;gap:16px;align-items:center;}
+  .pf{display:flex;flex-direction:column;gap:2px;}
+  .pf label{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;}
+  .pf select{font-family:var(--sans);font-size:12px;color:var(--ink);padding:4px 7px;
+    border:1px solid var(--rule);border-radius:6px;background:#fcfcfd;cursor:pointer;}
+  .pf .derived{font-size:12px;color:var(--gray);padding:4px 7px;font-weight:500;}
+  .scope-warn{font-size:11px;color:var(--amber);background:var(--amber-bg);
+    padding:4px 9px;border-radius:6px;display:none;}
 
-  /* ============ control panel ============ */
-  .panel{
-    background:var(--paper);border:1px solid var(--rule);border-radius:14px;
-    padding:22px 20px;position:sticky;top:24px;
-  }
-  @media(max-width:880px){.panel{position:static;}}
-  .panel .eyebrow{font-size:10px;font-weight:600;letter-spacing:.16em;color:var(--teal);text-transform:uppercase;}
-  .panel h2{font-family:var(--display);font-weight:500;font-size:21px;color:var(--navy);margin:3px 0 4px;line-height:1.2;}
-  .panel .sub{font-size:12.5px;color:var(--gray);margin-bottom:18px;}
-  .field{margin-bottom:15px;}
-  .field label{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--navy);
-    text-transform:uppercase;margin-bottom:6px;}
-  .field .pmeta{font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0;}
-  select{
-    width:100%;font-family:var(--sans);font-size:13.5px;color:var(--ink);
-    padding:9px 10px;border:1px solid var(--rule);border-radius:8px;background:#fcfcfd;cursor:pointer;
-  }
-  select:focus{outline:2px solid var(--teal);outline-offset:1px;}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;}
-  .chip-toggle{
-    font-family:var(--sans);font-size:12px;padding:6px 11px;border-radius:999px;cursor:pointer;
-    border:1px solid var(--rule);background:#fcfcfd;color:var(--gray);transition:all .14s ease;
-  }
-  .chip-toggle:hover{border-color:var(--teal);}
-  .chip-toggle.on{background:var(--navy);border-color:var(--navy);color:#fff;}
-  .panel .note{font-size:11px;color:var(--faint);margin-top:14px;line-height:1.5;
-    border-top:1px solid var(--rule);padding-top:12px;}
-  .panel .note b{color:var(--gray);}
+  /* ============ main split ============ */
+  .stage{display:grid;grid-template-columns:minmax(380px,1fr) minmax(440px,1.25fr);
+    gap:0;flex:1;min-height:0;}
+  @media(max-width:900px){.stage{grid-template-columns:1fr;grid-template-rows:1fr 1fr;}}
 
-  /* ============ the deliverable page ============ */
-  .deliverable{
-    background:var(--paper);border:1px solid var(--rule);border-radius:14px;
-    box-shadow:0 1px 3px rgba(20,30,50,.05),0 14px 38px -22px rgba(20,30,50,.28);
-    overflow:hidden;
-  }
-  .doc-head{
-    display:flex;justify-content:space-between;align-items:baseline;
-    padding:24px 40px 16px;border-bottom:1px solid var(--rule);
-  }
-  .brand{font-family:var(--sans);font-weight:600;letter-spacing:.14em;font-size:13px;color:var(--navy);}
-  .doc-head .right{font-size:11.5px;color:var(--faint);}
-  .doc-body{padding:14px 40px 40px;}
-  @media(max-width:880px){.doc-head{padding:20px 22px 14px;}.doc-body{padding:12px 22px 30px;}}
+  /* ============ chat pane ============ */
+  .chat-pane{display:flex;flex-direction:column;min-height:0;background:var(--paper);
+    border-right:1px solid var(--rule);}
+  .chat-head{padding:12px 20px;border-bottom:1px solid var(--rule);flex-shrink:0;
+    display:flex;align-items:center;gap:9px;}
+  .chat-head .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);}
+  .chat-head .t{font-size:12.5px;font-weight:600;color:var(--navy);}
+  .chat-head .mode-tag{margin-left:auto;font-size:10.5px;color:var(--faint);
+    background:var(--shell);padding:3px 9px;border-radius:999px;}
+  .chat-scroll{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
 
-  /* zone scaffold */
-  .zone{padding:26px 0;border-bottom:1px solid var(--rule);}
+  .msg{display:flex;gap:9px;max-width:92%;}
+  .msg.bot{align-self:flex-start;}
+  .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+  .av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;
+    align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+  .msg.bot .av{background:var(--navy);color:#fff;font-family:var(--display);}
+  .msg.user .av{background:var(--teal-bg);color:var(--teal);}
+  .bubble{padding:11px 14px;border-radius:13px;font-size:13.5px;line-height:1.55;}
+  .msg.bot .bubble{background:var(--bot-bg);color:var(--ink);border-bottom-left-radius:4px;}
+  .msg.user .bubble{background:var(--navy);color:#fff;border-bottom-right-radius:4px;}
+  .bubble .hint{display:block;margin-top:7px;font-size:11.5px;color:var(--gray);
+    font-style:italic;border-top:1px dashed var(--rule);padding-top:7px;}
+  .bubble b{font-weight:600;}
+  .bubble.coach{background:#fff;border:1px solid var(--amber);border-left:3px solid var(--amber);}
+  .bubble.coach .ctag{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:4px;}
+
+  /* interactive controls inside chat */
+  .controls{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;align-self:flex-start;
+    max-width:92%;padding-left:35px;}
+  .btn{font-family:var(--sans);font-size:12.5px;padding:7px 13px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--rule);background:#fff;color:var(--navy);transition:all .13s ease;}
+  .btn:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .btn.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .btn.primary:hover{background:#256356;}
+  .btn.ghost{font-size:11.5px;padding:5px 10px;color:var(--gray);}
+  .btn.ex{font-size:11.5px;padding:5px 10px;border-style:dashed;color:var(--gray);}
+  .multi-submit{margin-top:3px;}
+  .textfield{display:flex;gap:7px;margin-top:4px;padding-left:35px;max-width:92%;}
+  .textfield input{flex:1;font-family:var(--sans);font-size:13px;padding:8px 11px;
+    border:1px solid var(--rule);border-radius:9px;}
+  .textfield input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+
+  .mode-card{border:1px solid var(--rule);border-radius:10px;padding:9px 12px;cursor:pointer;
+    transition:all .13s ease;background:#fff;width:100%;text-align:left;}
+  .mode-card:hover{border-color:var(--teal);}
+  .mode-card .mt{font-size:13px;font-weight:600;color:var(--navy);}
+  .mode-card .md{font-size:11.5px;color:var(--gray);margin-top:1px;}
+  .mode-wrap{display:flex;flex-direction:column;gap:7px;width:100%;padding-left:35px;max-width:92%;}
+
+  .typing{display:flex;gap:3px;padding:11px 14px;}
+  .typing span{width:6px;height:6px;border-radius:50%;background:var(--faint);
+    animation:bounce 1.2s infinite;}
+  .typing span:nth-child(2){animation-delay:.15s;}
+  .typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+
+  /* ============ canvas pane ============ */
+  .canvas-pane{display:flex;flex-direction:column;min-height:0;background:var(--shell);}
+  .tabs{display:flex;gap:2px;padding:10px 14px 0;flex-shrink:0;}
+  .tab{font-family:var(--sans);font-size:12px;font-weight:500;padding:8px 15px;cursor:pointer;
+    border:1px solid var(--rule);border-bottom:none;border-radius:8px 8px 0 0;
+    background:#e4e7ea;color:var(--gray);position:relative;top:1px;}
+  .tab.active{background:var(--paper);color:var(--navy);font-weight:600;border-bottom:1px solid var(--paper);}
+  .tab .badge-n{font-size:10px;background:var(--navy);color:#fff;border-radius:999px;
+    padding:1px 6px;margin-left:5px;}
+  .tab.active .badge-n{background:var(--teal);}
+  .canvas-body{flex:1;overflow-y:auto;background:var(--paper);border:1px solid var(--rule);
+    margin:0 14px 14px;border-radius:0 10px 10px 10px;}
+  .tabview{display:none;padding:20px 22px;}
+  .tabview.active{display:block;}
+
+  /* --- Input Variables tab --- */
+  .iv-intro{font-size:12px;color:var(--gray);margin-bottom:14px;}
+  .iv-row{display:grid;grid-template-columns:34px 1fr;gap:11px;padding:11px 0;
+    border-bottom:1px solid #eef1f4;align-items:start;}
+  .iv-row:last-child{border-bottom:none;}
+  .iv-key{font-family:var(--display);font-weight:600;font-size:13px;color:var(--teal);}
+  .iv-q{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:3px;}
+  .iv-val{font-family:var(--serif);font-size:15px;color:var(--ink);line-height:1.35;}
+  .iv-val.empty{color:var(--faint);font-style:italic;font-family:var(--sans);font-size:13px;}
+  .iv-src{display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.05em;
+    text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-top:5px;}
+  .src-user{background:var(--teal-bg);color:var(--teal);}
+  .src-default{background:var(--amber-bg);color:var(--amber);}
+  .src-example{background:#e8eef5;color:var(--navy-soft);}
+  .iv-edit{margin-top:7px;display:none;}
+  .iv-edit select,.iv-edit input{font-family:var(--sans);font-size:12.5px;padding:6px 8px;
+    border:1px solid var(--rule);border-radius:7px;width:100%;}
+  .iv-editlink{font-size:11px;color:var(--navy-soft);cursor:pointer;margin-left:8px;
+    text-decoration:underline;}
+  .iv-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+  .iv-chip{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--rule);
+    background:#fcfcfd;color:var(--gray);cursor:pointer;}
+  .iv-chip.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  /* --- Cards tab --- */
+  .cards-intro{font-size:12px;color:var(--gray);margin-bottom:14px;}
+  .card{border:1px solid var(--rule);border-radius:10px;padding:14px 16px;margin-bottom:11px;}
+  .card.empty{border-style:dashed;background:#fafbfc;}
+  .card .cnum{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--faint);
+    text-transform:uppercase;}
+  .card .ctitle{font-family:var(--display);font-weight:500;font-size:16px;color:var(--navy);
+    margin:2px 0 7px;}
+  .card .cbody{font-size:13px;color:var(--ink);line-height:1.5;}
+  .card.empty .cbody{color:var(--faint);font-style:italic;}
+  .card .placeholder-bar{height:8px;background:#eef1f4;border-radius:4px;margin:6px 0;}
+  .card .placeholder-bar.short{width:55%;}
+
+  /* --- Deliverable tab --- */
+  .deliv-empty{text-align:center;padding:50px 20px;color:var(--faint);}
+  .deliv-empty .di{font-family:var(--display);font-size:19px;color:var(--gray);margin-bottom:6px;}
+  .deliv-empty .ds{font-size:13px;}
+
+  .zone{padding:22px 0;border-bottom:1px solid var(--rule);}
+  .zone:first-child{padding-top:4px;}
   .zone:last-child{border-bottom:none;}
-  .zlabel{font-size:10.5px;font-weight:600;letter-spacing:.17em;color:var(--faint);text-transform:uppercase;}
-  .ztitle{font-family:var(--display);font-weight:500;font-size:25px;color:var(--navy);
-    line-height:1.15;margin:3px 0 16px;}
-  .znum{font-family:var(--display);color:var(--teal);font-size:18px;font-weight:600;
-    margin-right:7px;font-variant-numeric:tabular-nums;}
+  .zlabel{font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--faint);text-transform:uppercase;}
+  .ztitle{font-family:var(--display);font-weight:500;font-size:21px;color:var(--navy);
+    line-height:1.15;margin:3px 0 14px;}
+  .znum{color:var(--teal);font-size:15px;font-weight:600;margin-right:6px;}
 
-  /* zone 1 — profile chips */
   .snapshot{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);
     border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
-  @media(max-width:680px){.snapshot{grid-template-columns:repeat(2,1fr);}}
-  .snap-cell{background:#fafbfc;padding:13px 14px;}
-  .snap-cell .k{font-size:10.5px;color:var(--faint);margin-bottom:3px;}
-  .snap-cell .v{font-family:var(--serif);font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.25;}
+  @media(max-width:1100px){.snapshot{grid-template-columns:repeat(3,1fr);}}
+  .snap-cell{background:#fafbfc;padding:11px 12px;}
+  .snap-cell .k{font-size:10px;color:var(--faint);margin-bottom:3px;}
+  .snap-cell .v{font-family:var(--serif);font-size:14px;font-weight:600;line-height:1.25;}
 
-  /* zone 2 — scorecard */
-  .scorecard{width:100%;border-collapse:collapse;margin-bottom:22px;}
-  .scorecard thead th{
-    font-size:10px;font-weight:600;letter-spacing:.11em;color:var(--faint);text-transform:uppercase;
-    text-align:left;padding:0 14px 8px;border-bottom:1px solid var(--rule);
-  }
-  .scorecard thead th.c{text-align:center;}
-  .scorecard td{padding:13px 14px;border-bottom:1px solid #eef1f4;vertical-align:middle;}
+  .scorecard{width:100%;border-collapse:collapse;margin-bottom:18px;}
+  .scorecard th{font-size:9.5px;font-weight:600;letter-spacing:.1em;color:var(--faint);
+    text-transform:uppercase;text-align:left;padding:0 11px 7px;border-bottom:1px solid var(--rule);}
+  .scorecard th.c{text-align:center;}
+  .scorecard td{padding:11px;border-bottom:1px solid #eef1f4;vertical-align:middle;}
   .scorecard tr:last-child td{border-bottom:none;}
-  .std-name{font-weight:600;font-size:14px;color:var(--ink);}
-  .std-desc{font-size:12px;color:var(--gray);margin-top:1px;}
-  .applies{text-align:center;font-size:13px;color:var(--gray);}
-  .status-cell{width:150px;}
-  .badge{
-    display:inline-block;font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:6px;
-    letter-spacing:.01em;
-  }
+  .std-name{font-weight:600;font-size:13px;}
+  .std-desc{font-size:11.5px;color:var(--gray);margin-top:1px;}
+  .applies{text-align:center;font-size:12.5px;color:var(--gray);}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;}
   .badge.gap{background:var(--red-bg);color:var(--red);}
   .badge.prog{background:var(--amber-bg);color:var(--amber);}
   .badge.done{background:var(--teal-bg);color:var(--teal);}
-  td.status-cell{text-align:left;}
-  tr.row-gap td{background:linear-gradient(90deg,rgba(178,59,59,.045),transparent 40%);}
-  tr.row-prog td{background:linear-gradient(90deg,rgba(178,107,0,.05),transparent 40%);}
-  tr.row-done td{background:linear-gradient(90deg,rgba(46,125,107,.05),transparent 40%);}
+  tr.row-gap td{background:linear-gradient(90deg,rgba(178,59,59,.045),transparent 45%);}
+  tr.row-prog td{background:linear-gradient(90deg,rgba(178,107,0,.05),transparent 45%);}
 
-  /* benchmark block */
-  .bench-label{font-size:10.5px;font-weight:600;letter-spacing:.13em;color:var(--faint);
-    text-transform:uppercase;margin-bottom:9px;}
+  .bench-label{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:8px;}
   .bench{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
     border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
-  @media(max-width:680px){.bench{grid-template-columns:1fr;}}
-  .bench-cell{background:#fafbfc;padding:18px 16px;text-align:center;}
-  .bench-cell .big{font-family:var(--display);font-weight:600;font-size:27px;color:var(--navy);line-height:1;}
-  .bench-cell .cap{font-size:11.5px;color:var(--gray);margin-top:7px;}
-  .bench-foot{font-size:11px;font-style:italic;color:var(--faint);margin-top:10px;}
+  .bench-cell{background:#fafbfc;padding:15px 12px;text-align:center;}
+  .bench-cell .big{font-family:var(--display);font-weight:600;font-size:23px;color:var(--navy);line-height:1;}
+  .bench-cell .cap{font-size:10.5px;color:var(--gray);margin-top:6px;}
+  .bench-foot{font-size:10.5px;font-style:italic;color:var(--faint);margin-top:9px;}
 
-  /* zone 3 — readiness */
-  .readiness{display:flex;gap:24px;align-items:center;}
-  @media(max-width:680px){.readiness{flex-direction:column;align-items:flex-start;gap:14px;}}
-  .meter{flex-shrink:0;width:128px;height:128px;position:relative;}
+  .readiness{display:flex;gap:20px;align-items:center;}
+  .meter{flex-shrink:0;width:104px;height:104px;position:relative;}
   .meter svg{transform:rotate(-90deg);}
   .meter .pct{position:absolute;inset:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;}
-  .meter .pct .n{font-family:var(--display);font-weight:600;font-size:32px;color:var(--navy);line-height:1;}
-  .meter .pct .w{font-size:10px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin-top:2px;}
-  .readiness .text .tier{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
-    display:inline-block;padding:4px 11px;border-radius:6px;margin-bottom:9px;}
-  .tier.t-not{background:#eceef0;color:var(--gray);}
-  .tier.t-prog{background:var(--amber-bg);color:var(--amber);}
-  .tier.t-ready{background:var(--teal-bg);color:var(--teal);}
-  .readiness .text .narr{font-family:var(--serif);font-size:16px;color:var(--ink);line-height:1.5;max-width:560px;}
+  .meter .pct .n{font-family:var(--display);font-weight:600;font-size:26px;color:var(--navy);line-height:1;}
+  .meter .pct .w{font-size:9px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;}
+  .tier{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    display:inline-block;padding:3px 10px;border-radius:6px;margin-bottom:8px;}
+  .t-not{background:#eceef0;color:var(--gray);}
+  .t-prog{background:var(--amber-bg);color:var(--amber);}
+  .t-ready{background:var(--teal-bg);color:var(--teal);}
+  .narr{font-family:var(--serif);font-size:14.5px;line-height:1.5;}
 
-  /* zone 4 — coach moment */
-  .coach{border-left:3px solid var(--navy-soft);background:#f7f8fa;
-    padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:14px;}
+  .coach{border-left:3px solid var(--navy-soft);background:#f7f8fa;padding:13px 16px;
+    border-radius:0 8px 8px 0;margin-bottom:11px;}
   .coach:last-child{margin-bottom:0;}
-  .coach .q{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink);line-height:1.5;}
-  .coach .src{font-size:11px;color:var(--faint);margin-top:8px;letter-spacing:.02em;}
+  .coach .q{font-family:var(--serif);font-style:italic;font-size:14.5px;line-height:1.5;}
+  .coach .src{font-size:10.5px;color:var(--faint);margin-top:6px;}
 
-  /* zone 5 — what's next */
   .next-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
-    border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:22px;}
-  @media(max-width:680px){.next-grid{grid-template-columns:1fr;}}
-  .next-col{background:#fafbfc;padding:16px 18px;}
-  .next-col h4{font-size:10.5px;font-weight:600;letter-spacing:.11em;color:var(--faint);
-    text-transform:uppercase;margin-bottom:11px;}
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:18px;}
+  .next-col{background:#fafbfc;padding:14px 15px;}
+  .next-col h4{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:9px;}
   .next-col ul{list-style:none;}
-  .next-col li{font-size:13.5px;color:var(--ink);line-height:1.5;padding-left:15px;position:relative;
-    margin-bottom:9px;}
+  .next-col li{font-size:12.5px;line-height:1.5;padding-left:14px;position:relative;margin-bottom:8px;}
   .next-col li:last-child{margin-bottom:0;}
-  .next-col li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;
+  .next-col li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;
     border-radius:50%;background:var(--teal);}
   .next-col li.back{color:var(--amber);}
   .next-col li.back::before{background:var(--amber);}
-
-  .terms{margin-top:4px;}
-  .terms .bench-label{margin-bottom:10px;}
-  .terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 26px;}
-  @media(max-width:680px){.terms-grid{grid-template-columns:1fr;}}
-  .term{font-size:12.5px;color:var(--gray);line-height:1.5;}
+  .terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 22px;}
+  .term{font-size:11.5px;color:var(--gray);line-height:1.5;}
   .term b{color:var(--navy);font-weight:600;}
 
-  /* tiny flash animation on update */
-  @keyframes flash{0%{background-color:rgba(46,125,107,.16);}100%{background-color:transparent;}}
-  .flash{animation:flash .6s ease;}
-
-  .footline{font-size:10.5px;color:var(--faint);text-align:center;padding-top:22px;}
+  @keyframes flash{0%{background:rgba(46,125,107,.14);}100%{background:transparent;}}
+  .flash{animation:flash .7s ease;}
+  @keyframes slidein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .msg,.controls,.mode-wrap,.textfield{animation:slidein .25s ease;}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-
-  <!-- ============ CONTROL PANEL ============ -->
-  <aside class="panel">
-    <div class="eyebrow">Interactive prototype</div>
-    <h2>Roadmap inputs</h2>
-    <div class="sub">Change any input — the five zones below update live. This is the dependency map from the ADD, running.</div>
-
-    <div class="field">
-      <label>Business stage <span class="pmeta">· profile</span></label>
-      <select id="i-stage">
+<!-- ============ PROFILE HEADER ============ -->
+<div class="topbar">
+  <span class="logo">POPSTART</span>
+  <span class="agent-name">Testing &amp; Compliance Checker · Module 5, Section 3</span>
+  <div class="profile-fields">
+    <span class="scope-warn" id="scope-warn">Module 5 is scoped to physical products — some advice may not apply.</span>
+    <div class="pf">
+      <label>Business stage</label>
+      <select id="pf-stage">
         <option>Just Exploring</option>
         <option selected>Pre-Launch</option>
         <option>Already in Business</option>
       </select>
     </div>
-
-    <div class="field">
-      <label>P1 · Product category</label>
-      <select id="i-cat">
-        <option>Consumer Electronics</option>
+    <div class="pf">
+      <label>Industry</label>
+      <select id="pf-industry">
+        <option selected>Home &amp; Living</option>
+        <option>Consumer Tech</option>
         <option>Food &amp; Beverage</option>
-        <option>Apparel &amp; Accessories</option>
-        <option>Health &amp; Beauty</option>
-        <option>Children's Products</option>
-        <option>Sporting Goods</option>
-        <option selected>Home Goods</option>
+        <option>Apparel</option>
+        <option>Beauty &amp; Wellness</option>
+        <option>Toys &amp; Kids</option>
+        <option>Consulting / Services</option>
       </select>
     </div>
-
-    <div class="field">
-      <label>P2 · Target market <span class="pmeta">· multi, uncapped</span></label>
-      <div class="chips" id="i-market">
-        <button class="chip-toggle on" data-v="United States">United States</button>
-        <button class="chip-toggle" data-v="European Union">European Union</button>
-        <button class="chip-toggle" data-v="Canada">Canada</button>
-      </div>
+    <div class="pf">
+      <label>Business type</label>
+      <span class="derived" id="pf-type">Product</span>
     </div>
+  </div>
+</div>
 
-    <div class="field">
-      <label>P3 · Testing completed <span class="pmeta">· multi, uncapped</span></label>
-      <div class="chips" id="i-testing">
-        <button class="chip-toggle" data-v="functional">Functional</button>
-        <button class="chip-toggle" data-v="durability">Durability</button>
-        <button class="chip-toggle on" data-v="user">User testing</button>
-        <button class="chip-toggle" data-v="documentation">Documentation</button>
-      </div>
+<!-- ============ MAIN SPLIT ============ -->
+<div class="stage">
+
+  <!-- CHAT -->
+  <div class="chat-pane">
+    <div class="chat-head">
+      <span class="dot"></span>
+      <span class="t">Compliance coach</span>
+      <span class="mode-tag" id="mode-tag">Activity mode</span>
     </div>
+    <div class="chat-scroll" id="chat"></div>
+  </div>
 
-    <div class="field">
-      <label>P4 · Sales channel</label>
-      <select id="i-channel">
-        <option selected>Online marketplace</option>
-        <option>Direct-to-consumer</option>
-        <option>Wholesale / retail</option>
-      </select>
+  <!-- CANVAS -->
+  <div class="canvas-pane">
+    <div class="tabs">
+      <div class="tab active" data-tab="iv">Input Variables</div>
+      <div class="tab" data-tab="cards">Cards <span class="badge-n" id="cards-count">0/8</span></div>
+      <div class="tab" data-tab="deliv">Deliverable</div>
     </div>
-
-    <div class="field">
-      <label>P5 · Certification status</label>
-      <select id="i-cert">
-        <option selected>Not started</option>
-        <option>In progress</option>
-        <option>Complete</option>
-      </select>
+    <div class="canvas-body">
+      <div class="tabview active" id="tv-iv"></div>
+      <div class="tabview" id="tv-cards"></div>
+      <div class="tabview" id="tv-deliv"></div>
     </div>
-
-    <div class="note">
-      <b>Prototype scope.</b> Renders the ADD's five-zone deliverable with the dependency cascade live.
-      Benchmark figures are the ADD's industry-average reference data — estimates, not guarantees.
-    </div>
-  </aside>
-
-  <!-- ============ DELIVERABLE ============ -->
-  <main class="deliverable" id="deliverable">
-    <div class="doc-head">
-      <div class="brand">POPSTART</div>
-      <div class="right">Testing &amp; compliance roadmap — Section 3</div>
-    </div>
-    <div class="doc-body">
-
-      <!-- ZONE 1 -->
-      <section class="zone">
-        <div class="zlabel">Your profile snapshot</div>
-        <div class="ztitle"><span class="znum">1</span>Here's what we built this roadmap around</div>
-        <div class="snapshot" id="z1"></div>
-      </section>
-
-      <!-- ZONE 2 -->
-      <section class="zone">
-        <div class="zlabel">Compliance readiness scorecard</div>
-        <div class="ztitle"><span class="znum">2</span>Where you stand against what's required</div>
-        <table class="scorecard">
-          <thead><tr>
-            <th>Standard</th><th class="c">Applies to you</th><th>Status</th>
-          </tr></thead>
-          <tbody id="z2-rows"></tbody>
-        </table>
-        <div class="bench-label" id="z2-bench-label">Industry benchmarks</div>
-        <div class="bench" id="z2-bench"></div>
-        <div class="bench-foot">Industry standard estimates — verify with a compliance professional before finalizing.</div>
-      </section>
-
-      <!-- ZONE 3 -->
-      <section class="zone">
-        <div class="zlabel">Readiness status</div>
-        <div class="ztitle"><span class="znum">3</span>Compliance readiness</div>
-        <div class="readiness">
-          <div class="meter" id="z3-meter"></div>
-          <div class="text">
-            <span class="tier" id="z3-tier"></span>
-            <div class="narr" id="z3-narr"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ZONE 4 -->
-      <section class="zone">
-        <div class="zlabel">Coach moment</div>
-        <div class="ztitle"><span class="znum">4</span>Two things worth sitting with</div>
-        <div id="z4"></div>
-      </section>
-
-      <!-- ZONE 5 -->
-      <section class="zone">
-        <div class="zlabel">What's next</div>
-        <div class="ztitle"><span class="znum">5</span>Where to go from here</div>
-        <div class="next-grid">
-          <div class="next-col">
-            <h4>In your business this week</h4>
-            <ul id="z5-actions"></ul>
-          </div>
-          <div class="next-col">
-            <h4>On the platform</h4>
-            <ul id="z5-platform"></ul>
-          </div>
-        </div>
-        <div class="terms">
-          <div class="bench-label">Terms to know</div>
-          <div class="terms-grid" id="z5-terms"></div>
-        </div>
-      </section>
-
-      <div class="footline">Popstart — Module 5, Section 3 · Compliance Readiness Roadmap · generated from your inputs</div>
-    </div>
-  </main>
+  </div>
 
 </div>
 
 <script>
 /* ====================================================================
-   DATA — the ADD's benchmark reference table & glossary
+   REFERENCE DATA  (ADD benchmark table + glossary)
    ==================================================================== */
 const CATEGORIES = {
   "Consumer Electronics":{ standards:[
@@ -367,11 +344,9 @@ const CATEGORIES = {
       {n:"CPSC compliance",d:"Consumer Product Safety Commission",test:"functional"}],
     timeline:"6–12 weeks",cost:"$1.5K–$5K",users:"5–10 people",reg:false }
 };
-/* user-testing baseline row applies to every category */
 const USER_TEST_ROW = {n:"User testing — 5 to 10 participants",d:"Real-world functional validation",test:"user"};
-/* marketplace row appears only for the marketplace channel */
 const MARKETPLACE_ROW = {n:"Marketplace compliance docs",d:"Channel-specific compliance requirements",test:"_channel"};
-
+const MARKET_ADDON = { "European Union":"+4–8 wks (EU)", "Canada":"+3–6 wks (Canada)" };
 const GLOSSARY = {
   "CPSC":"Consumer Product Safety Commission. The federal agency that sets and enforces product safety standards in the US.",
   "ASTM":"American Society for Testing and Materials. Sets voluntary consensus standards widely adopted in manufacturing.",
@@ -382,271 +357,819 @@ const GLOSSARY = {
   "CE Mark":"A certification mark required for products sold in the European Union, indicating EU safety compliance.",
   "Compliance testing":"Verifying a product meets the legal and regulatory standards required to sell it in a market."
 };
+/* industry -> default product category + whether it's a product business */
+const INDUSTRY_MAP = {
+  "Home & Living":{cat:"Home Goods",type:"Product"},
+  "Consumer Tech":{cat:"Consumer Electronics",type:"Product"},
+  "Food & Beverage":{cat:"Food & Beverage",type:"Product"},
+  "Apparel":{cat:"Apparel & Accessories",type:"Product"},
+  "Beauty & Wellness":{cat:"Health & Beauty",type:"Product"},
+  "Toys & Kids":{cat:"Children's Products",type:"Product"},
+  "Consulting / Services":{cat:"Home Goods",type:"Service"}
+};
 
-/* market timeline add-ons (weeks added) */
-const MARKET_ADDON = { "European Union":"+4–8 wks (EU)", "Canada":"+3–6 wks (Canada)" };
+/* ====================================================================
+   PROMPT DEFINITIONS — hints, examples, options, follow-up logic
+   ==================================================================== */
+const PROMPTS = {
+  P1:{ key:"P1", q:"What kind of product are you building?",
+    hint:"Pick the category that best matches your product. It sets which safety standards apply to you.",
+    example:"A ceramic pour-over coffee dripper would be Home Goods.",
+    type:"select",
+    options:["Consumer Electronics","Food & Beverage","Apparel & Accessories","Health & Beauty","Children's Products","Sporting Goods","Home Goods","Not sure / Other"] },
+  P2:{ key:"P2", q:"Which markets are you planning to sell in?",
+    hint:"Select every market that applies — different regions require different certifications.",
+    example:"Selling on Amazon US and shipping to Canada? Pick both United States and Canada.",
+    type:"multi",
+    options:["United States","European Union","Canada"] },
+  P3:{ key:"P3", q:"What testing have you completed so far?",
+    hint:"Select everything that's done. Be honest — gaps here are exactly what this roadmap is for.",
+    example:"If you've handed your prototype to a few friends to try, that counts as user testing.",
+    type:"multi",
+    options:[
+      {v:"functional",l:"Functional testing"},
+      {v:"durability",l:"Durability testing"},
+      {v:"user",l:"User testing (real people)"},
+      {v:"documentation",l:"Documentation / records"},
+      {v:"none",l:"None yet"}] },
+  P4:{ key:"P4", q:"How are you planning to sell?",
+    hint:"Your channel changes what compliance paperwork you'll need.",
+    example:"Listing on Amazon or Etsy is an online marketplace.",
+    type:"select",
+    options:["Online marketplace","Direct-to-consumer","Wholesale / retail"] },
+  P5:{ key:"P5", q:"Where are you with certification?",
+    hint:"Certification is third-party lab testing against a standard. Honest answer is fine — most pre-launch founders haven't started.",
+    example:"If you've emailed a lab but not booked anything, that's still 'Not started'.",
+    type:"select",
+    options:["Not started","In progress","Complete","Not sure"] }
+};
+/* P3 multi-select choices map to internal testing tokens */
+const TESTING_TOKENS = ["functional","durability","user","documentation"];
 
 /* ====================================================================
    STATE
    ==================================================================== */
-const state = {
-  stage:"Pre-Launch", category:"Home Goods",
-  markets:["United States"], testing:["user"],
-  channel:"Online marketplace", cert:"Not started"
+const S = {
+  stage:"Pre-Launch", industry:"Home & Living", btype:"Product",
+  mode:null,                       // quick | standard | deep
+  answers:{ P1:null,P2:null,P3:null,P4:null,P5:null },
+  sources:{ P1:null,P2:null,P3:null,P4:null,P5:null },  // user | default | example
+  step:0,                          // index into the prompt plan
+  plan:[],                         // ordered prompt keys for the chosen mode
+  generated:false,
+  pendingMulti:[]                  // working selection for a multi prompt
 };
 
-/* ====================================================================
-   DERIVATION — the dependency map in code
-   ==================================================================== */
-function buildRows(){
-  const cat = CATEGORIES[state.category];
-  let rows = cat.standards.slice();
-  rows.push(USER_TEST_ROW);
-  if(state.channel === "Online marketplace") rows.push(MARKETPLACE_ROW);
+/* derived internal fields from answers */
+function derive(){
+  const a = S.answers;
+  let cat = "Home Goods";
+  if(a.P1 && a.P1!=="Not sure / Other") cat = a.P1;
+  else if(a.P1==="Not sure / Other") cat = INDUSTRY_MAP[S.industry].cat;
+  const markets = a.P2 && a.P2.length ? a.P2 : ["United States"];
+  let testing = (a.P3||[]).filter(x=>TESTING_TOKENS.includes(x));
+  const channel = a.P4 || "Online marketplace";
+  const cert = a.P5==="Not sure" ? "Not started" : (a.P5||"Not started");
+  return {cat,markets,testing,channel,cert};
+}
 
+/* ====================================================================
+   DOM HELPERS
+   ==================================================================== */
+const chat = document.getElementById('chat');
+function scrollDown(){ chat.scrollTop = chat.scrollHeight; }
+
+function botMsg(html, cls){
+  const m = document.createElement('div');
+  m.className = 'msg bot';
+  m.innerHTML = `<div class="av">P</div><div class="bubble ${cls||''}">${html}</div>`;
+  chat.appendChild(m); scrollDown(); return m;
+}
+function userMsg(text){
+  const m = document.createElement('div');
+  m.className = 'msg user';
+  m.innerHTML = `<div class="av">You</div><div class="bubble">${text}</div>`;
+  chat.appendChild(m); scrollDown();
+}
+function typing(){
+  const m = document.createElement('div');
+  m.className = 'msg bot';
+  m.innerHTML = `<div class="av">P</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  chat.appendChild(m); scrollDown(); return m;
+}
+/* bot says something after a realistic pause */
+function botSay(html, cls, delay){
+  return new Promise(res=>{
+    const tp = typing();
+    setTimeout(()=>{ tp.remove(); botMsg(html,cls); res(); }, delay||650);
+  });
+}
+function clearControls(){
+  document.querySelectorAll('.controls,.mode-wrap,.textfield').forEach(e=>e.remove());
+}
+
+/* ====================================================================
+   CHAT FLOW
+   ==================================================================== */
+async function start(){
+  renderIV(); renderCards(); renderDeliv();
+  const openings = {
+    "Just Exploring":"You're still in the planning stage — the best time to understand compliance. We'll map what testing you'll need before you spend money on production.",
+    "Pre-Launch":"You're close to launch, so let's make sure your testing plan is solid. We'll check which certifications you need and catch any gaps before you go to market.",
+    "Already in Business":"You're already selling. Let's audit your current testing and compliance and find anything that needs to be added, updated, or documented."
+  };
+  await botSay("Let's figure out what testing and compliance your product actually needs. Tell me what you're building and I'll identify the standards that apply, flag any gaps, and help you build a clear roadmap.", null, 400);
+  await botSay(openings[S.stage], null, 750);
+  offerDepthMode();
+}
+
+function offerDepthMode(){
+  clearControls();
+  botMsg("First — how deep do you want to go today?");
+  const wrap = document.createElement('div');
+  wrap.className = 'mode-wrap';
+  const modes = [
+    ["quick","Quick — about 3 minutes","Two key questions. I'll fill in the rest from benchmark data and you can adjust."],
+    ["standard","Standard — about 8 minutes","All five questions, the way the activity is designed."],
+    ["deep","Deep — about 15 minutes","All five, plus a follow-up on each so the roadmap is as sharp as possible."]
+  ];
+  modes.forEach(([v,tt,dd])=>{
+    const c = document.createElement('button');
+    c.className = 'mode-card';
+    c.innerHTML = `<div class="mt">${tt}</div><div class="md">${dd}</div>`;
+    c.onclick = ()=> chooseMode(v, tt);
+    wrap.appendChild(c);
+  });
+  chat.appendChild(wrap); scrollDown();
+}
+
+function chooseMode(mode, label){
+  S.mode = mode;
+  clearControls();
+  userMsg(label.split(" — ")[0]);
+  document.getElementById('mode-tag').textContent =
+    mode.charAt(0).toUpperCase()+mode.slice(1)+" mode";
+  // build the prompt plan
+  S.plan = mode==="quick" ? ["P1","P2"] : ["P1","P2","P3","P4","P5"];
+  S.step = 0;
+  setTimeout(async ()=>{
+    if(mode==="quick")
+      await botSay("Great — quick it is. I'll ask two questions, then fill the rest from benchmark data and let you adjust before I build.", null, 600);
+    else if(mode==="deep")
+      await botSay("Perfect. I'll ask all five and dig in a little on each. Let's go.", null, 600);
+    else
+      await botSay("Sounds good — five quick questions and I'll build your roadmap.", null, 600);
+    askNext();
+  }, 350);
+}
+
+/* ask the next prompt in the plan */
+function askNext(){
+  if(S.step >= S.plan.length){ finishCollection(); return; }
+  const p = PROMPTS[S.plan[S.step]];
+  renderPrompt(p);
+}
+
+function renderPrompt(p){
+  clearControls();
+  const bubble = `${p.q}<span class="hint">${p.hint}</span>`;
+  botMsg(bubble);
+  // example affordance
+  const exRow = document.createElement('div');
+  exRow.className = 'controls';
+  const exBtn = document.createElement('button');
+  exBtn.className = 'btn ex';
+  exBtn.textContent = '💡 See an example';
+  exBtn.onclick = ()=>{
+    exBtn.remove();
+    botMsg(`<b>Example —</b> ${p.example}`);
+    scrollDown();
+  };
+  exRow.appendChild(exBtn);
+  chat.appendChild(exRow);
+
+  if(p.type==='select') renderSelectControls(p);
+  else renderMultiControls(p);
+  scrollDown();
+}
+
+function renderSelectControls(p){
+  const row = document.createElement('div');
+  row.className = 'controls';
+  p.options.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = opt;
+    btn.onclick = ()=> handleSelect(p, opt);
+    row.appendChild(btn);
+  });
+  chat.appendChild(row);
+}
+
+function renderMultiControls(p){
+  S.pendingMulti = [];
+  const row = document.createElement('div');
+  row.className = 'controls';
+  p.options.forEach(opt=>{
+    const v = typeof opt==='string'?opt:opt.v;
+    const l = typeof opt==='string'?opt:opt.l;
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = l;
+    btn.dataset.v = v;
+    btn.onclick = ()=>{
+      if(v==='none'){
+        // 'none' is exclusive
+        S.pendingMulti = ['none'];
+        row.querySelectorAll('.btn').forEach(b=>b.classList.remove('on'));
+        btn.classList.add('on');
+      } else {
+        const noneBtn = row.querySelector('[data-v="none"]');
+        if(noneBtn){ noneBtn.classList.remove('on'); }
+        S.pendingMulti = S.pendingMulti.filter(x=>x!=='none');
+        if(S.pendingMulti.includes(v)){
+          S.pendingMulti = S.pendingMulti.filter(x=>x!==v);
+          btn.classList.remove('on');
+        } else { S.pendingMulti.push(v); btn.classList.add('on'); }
+      }
+      sub.disabled = S.pendingMulti.length===0;
+      sub.style.opacity = S.pendingMulti.length===0?.5:1;
+    };
+    row.appendChild(btn);
+  });
+  chat.appendChild(row);
+  const subRow = document.createElement('div');
+  subRow.className = 'controls multi-submit';
+  const sub = document.createElement('button');
+  sub.className = 'btn primary';
+  sub.textContent = 'Confirm selection';
+  sub.disabled = true; sub.style.opacity = .5;
+  sub.onclick = ()=> handleMulti(p, S.pendingMulti.slice());
+  subRow.appendChild(sub);
+  chat.appendChild(subRow);
+}
+
+/* ---- handle a single-select answer ---- */
+async function handleSelect(p, opt){
+  clearControls();
+  userMsg(opt);
+  // follow-up logic
+  if(p.key==='P1' && opt==='Not sure / Other'){
+    S.answers.P1 = 'Not sure / Other'; S.sources.P1='default';
+    renderIV();
+    await botSay(`No problem. A product category just tells me which safety standards to check. Based on your industry — <b>${S.industry}</b> — I'll work from <b>${INDUSTRY_MAP[S.industry].cat}</b> standards as a starting point. You can correct that anytime in the Input Variables tab.`, null, 750);
+    advance();
+    return;
+  }
+  if(p.key==='P5' && opt==='Not sure'){
+    S.answers.P5 = 'Not sure'; S.sources.P5='default';
+    renderIV();
+    await botSay("That's the honest answer for most pre-launch founders. <b>Certification</b> means sending your product to an independent lab to be tested against a safety standard. I'll treat you as <b>Not started</b> — which just means it's ahead of you, not behind you.", null, 800);
+    advance();
+    return;
+  }
+  S.answers[p.key] = opt; S.sources[p.key]='user';
+  renderIV();
+  await maybeProbe(p);
+  advance();
+}
+
+/* ---- handle a multi-select answer ---- */
+async function handleMulti(p, sel){
+  clearControls();
+  let labels = sel.map(v=>{
+    const o = p.options.find(x=> (typeof x==='string'?x:x.v)===v);
+    return typeof o==='string'?o:o.l;
+  });
+  userMsg(labels.join(', '));
+  if(p.key==='P3' && sel.includes('none')){
+    S.answers.P3 = []; S.sources.P3='user';
+  } else {
+    S.answers[p.key] = sel; S.sources[p.key]='user';
+  }
+  renderIV();
+  await maybeProbe(p);
+  advance();
+}
+
+/* ---- gap probes + engagement (items 2,3) ---- */
+async function maybeProbe(p){
+  // P1: regulated category — engage
+  if(p.key==='P1' && S.answers.P1 && CATEGORIES[S.answers.P1] && CATEGORIES[S.answers.P1].reg){
+    await botSay(`Good to know — <b>${S.answers.P1}</b> is a more regulated category, so getting the standards right early really pays off. Noted.`, null, 650);
+  }
+  // P2: EU selected — engage
+  if(p.key==='P2' && S.answers.P2 && S.answers.P2.includes('European Union')){
+    await botSay("Selling into the EU adds <b>CE marking</b> and a few weeks to your timeline — I'll factor that into your benchmarks.", null, 650);
+  }
+  // P3: no user testing — gap probe
+  if(p.key==='P3'){
+    const t = S.answers.P3||[];
+    if(!t.includes('user')){
+      await botSay(`<span class="ctag">Coach moment</span>One thing worth pausing on — it looks like real people haven't used your product yet. Five people from your target market, no coaching, just watching, is the one test you can run this week for free. We'll keep going, but I'll put that on your roadmap.`, 'coach', 850);
+    }
+    if(t.length===0){
+      await botSay(`<span class="ctag">Coach moment</span>No testing yet is completely normal at this stage — that's exactly what the roadmap is going to sequence for you. Nothing to fix, just a starting point.`, 'coach', 800);
+    }
+  }
+  // deep mode: one clarifying follow-up per prompt
+  if(S.mode==='deep'){
+    const followups = {
+      P1:"What's the one feature of it you're most proud of?",
+      P2:"Which of those markets matters most for your launch?",
+      P3:"Of the testing left to do, which part worries you most?",
+      P4:"What made you lean toward that channel?",
+      P5:"Is there a deadline pushing your certification timeline?"
+    };
+    if(followups[p.key]){
+      await botSay(`<b>One more thing —</b> ${followups[p.key]} <span class="hint">Optional — you can skip this.</span>`, null, 700);
+      await deepFollowup();
+    }
+  }
+}
+
+/* deep-mode follow-up: free text or skip */
+function deepFollowup(){
+  return new Promise(res=>{
+    const tf = document.createElement('div');
+    tf.className = 'textfield';
+    const inp = document.createElement('input');
+    inp.placeholder = 'Type a quick answer…';
+    const send = document.createElement('button');
+    send.className = 'btn primary'; send.textContent = 'Send';
+    const skip = document.createElement('button');
+    skip.className = 'btn ghost'; skip.textContent = 'Skip';
+    const done = (txt)=>{
+      tf.remove();
+      if(txt){ userMsg(txt); }
+      else { userMsg('(skipped)'); }
+      res();
+    };
+    send.onclick = ()=>{ if(inp.value.trim()) done(inp.value.trim()); };
+    skip.onclick = ()=> done(null);
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&inp.value.trim()) done(inp.value.trim()); });
+    tf.appendChild(inp); tf.appendChild(send); tf.appendChild(skip);
+    chat.appendChild(tf); inp.focus(); scrollDown();
+  });
+}
+
+function advance(){
+  S.step++;
+  setTimeout(askNext, 450);
+}
+
+/* ---- after the last prompt: quick-mode assumption summary, then generate ---- */
+async function finishCollection(){
+  clearControls();
+  if(S.mode==='quick'){
+    // substitute benchmark defaults for P3, P4, P5
+    if(!S.answers.P3){ S.answers.P3=[]; S.sources.P3='default'; }
+    if(!S.answers.P4){ S.answers.P4='Online marketplace'; S.sources.P4='default'; }
+    if(!S.answers.P5){ S.answers.P5='Not started'; S.sources.P5='default'; }
+    renderIV();
+    await botSay("Here's what I'll assume for the rest, based on benchmark data for your category:", null, 650);
+    await botSay("• Testing completed: <b>none yet</b><br>• Sales channel: <b>online marketplace</b><br>• Certification: <b>not started</b><br><br>Want to adjust any of these, or shall I build your roadmap?", null, 700);
+    const row = document.createElement('div');
+    row.className = 'controls';
+    const go = document.createElement('button');
+    go.className='btn primary'; go.textContent='Build my roadmap';
+    go.onclick = ()=>{ clearControls(); userMsg('Build my roadmap'); generate(); };
+    const adj = document.createElement('button');
+    adj.className='btn'; adj.textContent='Let me adjust them';
+    adj.onclick = ()=>{ clearControls(); userMsg('Let me adjust them');
+      botMsg('Open the <b>Input Variables</b> tab on the right — every answer is editable there. Change what you need, then come back here.');
+      const r2=document.createElement('div'); r2.className='controls';
+      const g2=document.createElement('button'); g2.className='btn primary'; g2.textContent="I'm done — build it";
+      g2.onclick=()=>{ clearControls(); userMsg("I'm done — build it"); generate(); };
+      r2.appendChild(g2); chat.appendChild(r2); switchTab('iv'); scrollDown();
+    };
+    row.appendChild(go); row.appendChild(adj);
+    chat.appendChild(row); scrollDown();
+  } else {
+    generate();
+  }
+}
+
+/* ---- generate the deliverable ---- */
+async function generate(){
+  clearControls();
+  await botSay("Got everything I need. Based on your product, your market, and where you are right now, here's exactly what applies to you and where your gaps are.", null, 800);
+  S.generated = true;
+  renderIV();
+  switchTab('cards');
+  await populateCardsSequentially();
+  renderDeliv();
+  const d = derive(); const rows = buildRows(d); const r = readiness(rows);
+  const crit = rows.find(x=>x.status==='gap');
+  await botSay(`Your compliance roadmap is ready. The biggest thing on your plate right now is <b>${crit?crit.n:'lab certification'}</b>. Want to talk through what that means for your timeline, or figure out which lab to reach out to first?`, null, 900);
+  // open the deliverable tab for them
+  const row = document.createElement('div');
+  row.className='controls';
+  const v=document.createElement('button');
+  v.className='btn primary'; v.textContent='View full roadmap';
+  v.onclick=()=>switchTab('deliv');
+  row.appendChild(v);
+  chat.appendChild(row); scrollDown();
+}
+
+/* ====================================================================
+   DERIVATION (dependency map) — shared with deliverable
+   ==================================================================== */
+function buildRows(d){
+  let rows = CATEGORIES[d.cat].standards.slice();
+  rows.push(USER_TEST_ROW);
+  if(d.channel==="Online marketplace") rows.push(MARKETPLACE_ROW);
   return rows.map(r=>{
     let status;
-    if(r.test === "_channel"){
-      // marketplace docs: progress unless documentation testing done
-      status = state.testing.includes("documentation") ? "done" : "prog";
-    } else if(r.test === "documentation"){
-      status = state.testing.includes("documentation") ? "done"
-             : (state.cert==="In progress" ? "prog" : "gap");
-    } else if(state.testing.includes(r.test)){
-      status = "done";
-    } else if(state.cert === "Complete"){
-      status = "done";
-    } else if(state.cert === "In progress"){
-      status = "prog";
-    } else {
-      status = "gap";
-    }
-    return {...r, status};
+    if(r.test==="_channel"){
+      status = d.testing.includes("documentation")?"done":"prog";
+    } else if(r.test==="documentation"){
+      status = d.testing.includes("documentation")?"done"
+             : (d.cert==="In progress"?"prog":"gap");
+    } else if(d.testing.includes(r.test)){ status="done"; }
+    else if(d.cert==="Complete"){ status="done"; }
+    else if(d.cert==="In progress"){ status="prog"; }
+    else { status="gap"; }
+    return {...r,status};
   });
 }
-
 function readiness(rows){
-  const total = rows.length;
-  const complete = rows.filter(r=>r.status==="done").length;
-  const prog = rows.filter(r=>r.status==="prog").length;
-  // ADD OQ-2: partial credit for In Progress rows (0.5). Documented choice.
-  const pct = Math.round(((complete + prog*0.5)/total)*100);
-  let tier, tierClass;
-  if(pct===0){ tier="Not Started"; tierClass="t-not"; }
-  else if(pct>=100){ tier="Launch Ready"; tierClass="t-ready"; }
-  else { tier="In Progress"; tierClass="t-prog"; }
-  return {pct, complete, prog, gaps:total-complete-prog, total, tier, tierClass};
+  const total=rows.length;
+  const complete=rows.filter(r=>r.status==="done").length;
+  const prog=rows.filter(r=>r.status==="prog").length;
+  const pct=Math.round(((complete+prog*0.5)/total)*100);
+  let tier,tc;
+  if(pct===0){tier="Not Started";tc="t-not";}
+  else if(pct>=100){tier="Launch Ready";tc="t-ready";}
+  else {tier="In Progress";tc="t-prog";}
+  return {pct,complete,prog,gaps:total-complete-prog,total,tier,tc};
 }
-
-/* coach moment selection — the gap-trigger logic from ADD §6.2 */
-function coachMoments(rows){
-  const noUser = !state.testing.includes("user");
-  const noDoc = !state.testing.includes("documentation");
-  const candidates = [];
-
-  if(state.stage==="Just Exploring"){
-    if(state.cert==="Not started" && CATEGORIES[state.category].reg)
-      candidates.push({q:"Do you know which regulatory standards apply to your product before you finalize the design? Changing a material after certification costs more than getting it right the first time.",src:"Just Exploring — compliance and design"});
+function coachMoments(d){
+  const noUser=!d.testing.includes("user");
+  const noDoc=!d.testing.includes("documentation");
+  const c=[];
+  if(S.stage==="Just Exploring"){
+    if(d.cert==="Not started"&&CATEGORIES[d.cat].reg)
+      c.push({q:"Do you know which regulatory standards apply to your product before you finalize the design? Changing a material after certification costs more than getting it right the first time.",src:"Just Exploring — compliance and design"});
     if(noUser)
-      candidates.push({q:"Have you put your concept in front of real people yet? Even five conversations before you build anything will change what you build.",src:"Just Exploring — user testing"});
+      c.push({q:"Have you put your concept in front of real people yet? Even five conversations before you build anything will change what you build.",src:"Just Exploring — user testing"});
   }
-  if(state.stage==="Pre-Launch"){
+  if(S.stage==="Pre-Launch"){
     if(noUser)
-      candidates.push({q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review — and it's the one test you can run this week for free.",src:"Pre-launch — functional and user testing"});
-    if(state.cert!=="Complete")
-      candidates.push({q:"Do you know which lab you're sending your product to, and how long their queue is right now? Certification timelines are your longest lead time. Start that conversation before you need it.",src:"Pre-launch — compliance and certification"});
+      c.push({q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review — and it's the one test you can run this week for free.",src:"Pre-launch — functional and user testing"});
+    if(d.cert!=="Complete")
+      c.push({q:"Do you know which lab you're sending your product to, and how long their queue is right now? Certification timelines are your longest lead time. Start that conversation before you need it.",src:"Pre-launch — compliance and certification"});
   }
-  if(state.stage==="Already in Business"){
-    if(state.cert!=="Complete")
-      candidates.push({q:"When did you last audit your certifications against your current design? A change you made six months ago may have opened a gap you don't know about yet.",src:"Already in business — certification audit"});
+  if(S.stage==="Already in Business"){
+    if(d.cert!=="Complete")
+      c.push({q:"When did you last audit your certifications against your current design? A change you made six months ago may have opened a gap you don't know about yet.",src:"Already in business — certification audit"});
     if(noDoc)
-      candidates.push({q:"If a retailer asked for your compliance documentation today, how long would it take you to pull it together? That answer tells you exactly what to do next.",src:"Already in business — documentation"});
+      c.push({q:"If a retailer asked for your compliance documentation today, how long would it take you to pull it together? That answer tells you exactly what to do next.",src:"Already in business — documentation"});
   }
-
-  // fallbacks so two always show
-  const fallback = [
+  const fb=[
     {q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review.",src:"All stages — user validation"},
-    {q:"Do you know which lab you're sending your product to, and how long their queue is right now? Start that conversation before you need it.",src:"All stages — certification lead time"}
-  ];
+    {q:"Do you know which lab you're sending your product to, and how long their queue is right now? Start that conversation before you need it.",src:"All stages — certification lead time"}];
   let i=0;
-  while(candidates.length<2 && i<fallback.length){
-    if(!candidates.find(c=>c.src===fallback[i].src)) candidates.push(fallback[i]);
-    i++;
-  }
-  return candidates.slice(0,2);
+  while(c.length<2&&i<fb.length){ if(!c.find(x=>x.src===fb[i].src))c.push(fb[i]); i++; }
+  return c.slice(0,2);
 }
-
-/* what's-next this-week actions, tied to gap rows */
 function weeklyActions(rows){
-  const acts=[];
-  if(rows.some(r=>r.status!=="done" && /CPSC|ASTM|FCC|UL|CPSIA|FDA/.test(r.n)))
-    acts.push("Contact an accredited lab — get on their calendar before you're under deadline pressure.");
-  if(rows.some(r=>r.test==="_channel" && r.status!=="done"))
-    acts.push("Pull your "+state.channel.toLowerCase()+" compliance requirements and map what's missing.");
-  if(!state.testing.includes("user"))
-    acts.push("Run an informal user test — five people from your target market, no coaching, just observe.");
-  if(!state.testing.includes("documentation"))
-    acts.push("Start a documentation folder now. Retailers and platforms will ask for it.");
-  if(acts.length<3)
-    acts.push("Re-confirm which standards apply to your category before you finalize your product spec.");
-  return acts.slice(0,3);
+  const a=[];
+  if(rows.some(r=>r.status!=="done"&&/CPSC|ASTM|FCC|UL|CPSIA|FDA/.test(r.n)))
+    a.push("Contact an accredited lab — get on their calendar before you're under deadline pressure.");
+  if(rows.some(r=>r.test==="_channel"&&r.status!=="done"))
+    a.push("Pull your marketplace compliance requirements and map what's missing.");
+  const d=derive();
+  if(!d.testing.includes("user"))
+    a.push("Run an informal user test — five people from your target market, no coaching, just observe.");
+  if(!d.testing.includes("documentation"))
+    a.push("Start a documentation folder now. Retailers and platforms will ask for it.");
+  if(a.length<3) a.push("Re-confirm which standards apply to your category before you finalize your spec.");
+  return a.slice(0,3);
 }
-
-/* backward referral — ADD §7.2 / script §6A */
 function backwardReferral(){
-  if(state.stage==="Just Exploring") return true;
-  if(!state.testing.includes("user") && !state.testing.includes("functional")) return true;
+  const d=derive();
+  if(S.stage==="Just Exploring") return true;
+  if(!d.testing.includes("user")&&!d.testing.includes("functional")) return true;
   return false;
 }
-
-/* glossary terms relevant to current state */
 function relevantTerms(rows){
-  const set = new Set();
+  const set=new Set();
   rows.forEach(r=>{
-    if(/CPSC/.test(r.n)) set.add("CPSC");
-    if(/ASTM/.test(r.n)) set.add("ASTM");
-    if(/FDA/.test(r.n)) set.add("FDA");
-    if(/FCC/.test(r.n)) set.add("FCC");
-    if(/GCC/.test(r.n)) set.add("GCC");
+    if(/CPSC/.test(r.n))set.add("CPSC");
+    if(/ASTM/.test(r.n))set.add("ASTM");
+    if(/FDA/.test(r.n))set.add("FDA");
+    if(/FCC/.test(r.n))set.add("FCC");
+    if(/GCC/.test(r.n))set.add("GCC");
   });
   set.add("Accredited lab");
-  if(state.markets.includes("European Union")) set.add("CE Mark");
-  if(set.size<4) set.add("Compliance testing");
+  const d=derive();
+  if(d.markets.includes("European Union"))set.add("CE Mark");
+  if(set.size<4)set.add("Compliance testing");
   return Array.from(set).slice(0,6);
 }
 
 /* ====================================================================
-   RENDER
+   TAB: INPUT VARIABLES  (editable)
    ==================================================================== */
-function render(changed){
-  const rows = buildRows();
-  const r = readiness(rows);
-
-  /* ---- ZONE 1 ---- */
-  const snap = [
-    ["Business stage", state.stage],
-    ["Product category", state.category],
-    ["Target market", state.markets.join(", ")],
-    ["Sales channel", state.channel],
-    ["Certification status", state.cert]
-  ];
-  document.getElementById('z1').innerHTML = snap.map(s=>
-    `<div class="snap-cell"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('');
-
-  /* ---- ZONE 2 scorecard ---- */
-  document.getElementById('z2-rows').innerHTML = rows.map(row=>{
-    const badge = row.status==="gap"?`<span class="badge gap">Gap</span>`
-                : row.status==="prog"?`<span class="badge prog">In progress</span>`
-                : `<span class="badge done">Complete</span>`;
-    return `<tr class="row-${row.status}">
-      <td><div class="std-name">${row.n}</div><div class="std-desc">${row.d}</div></td>
-      <td class="applies">Yes</td>
-      <td class="status-cell">${badge}</td></tr>`;
-  }).join('');
-
-  /* ---- ZONE 2 benchmark ---- */
-  const cat = CATEGORIES[state.category];
-  let timeline = cat.timeline;
-  const addons = state.markets.filter(m=>MARKET_ADDON[m]).map(m=>MARKET_ADDON[m]);
-  const mLabel = "Industry benchmarks — "+state.category+", "+state.markets.join(" / ");
-  document.getElementById('z2-bench-label').textContent = mLabel.toUpperCase();
-  document.getElementById('z2-bench').innerHTML = [
-    [timeline + (addons.length?`<div style="font-size:11px;color:var(--amber);font-family:var(--sans);font-weight:500;margin-top:3px;">${addons.join(" ")}</div>`:""),"Average time to certification"],
-    [cat.cost,"Typical lab testing cost range"],
-    [cat.users,"Recommended user test participants"]
-  ].map(b=>`<div class="bench-cell"><div class="big">${b[0]}</div><div class="cap">${b[1]}</div></div>`).join('');
-
-  /* ---- ZONE 3 readiness meter ---- */
-  const circ = 2*Math.PI*54;
-  const dash = circ * (r.pct/100);
-  const meterColor = r.pct===0?"#9aa1ab":(r.pct>=100?"#2e7d6b":"#b26b00");
-  document.getElementById('z3-meter').innerHTML = `
-    <svg width="128" height="128" viewBox="0 0 128 128">
-      <circle cx="64" cy="64" r="54" fill="none" stroke="#eceef0" stroke-width="13"/>
-      <circle cx="64" cy="64" r="54" fill="none" stroke="${meterColor}" stroke-width="13"
-        stroke-linecap="round" stroke-dasharray="${dash} ${circ}"
-        style="transition:stroke-dasharray .5s ease;"/>
-    </svg>
-    <div class="pct"><div class="n">${r.pct}%</div><div class="w">ready</div></div>`;
-  const tierEl = document.getElementById('z3-tier');
-  tierEl.textContent = r.tier;
-  tierEl.className = "tier "+r.tierClass;
-  let narr;
-  if(r.gaps===0 && r.prog===0){
-    narr = "Every applicable standard is complete. Your compliance work is launch-ready — keep your documentation current.";
-  } else {
-    const parts=[];
-    if(r.gaps>0) parts.push(`${r.gaps} gap${r.gaps>1?'s':''} identified before launch`);
-    if(r.prog>0) parts.push(`${r.prog} item${r.prog>1?'s':''} in progress`);
-    if(r.complete>0) parts.push(`${r.complete} complete`);
-    narr = parts.join(", ").replace(/,([^,]*)$/,', and$1') +
-      ". Lab certifications and channel documentation are the critical path items.";
-    narr = narr.charAt(0).toUpperCase()+narr.slice(1);
-  }
-  document.getElementById('z3-narr').textContent = narr;
-
-  /* ---- ZONE 4 coach moments ---- */
-  document.getElementById('z4').innerHTML = coachMoments(rows).map(c=>
-    `<div class="coach"><div class="q">${c.q}</div><div class="src">${c.src}</div></div>`).join('');
-
-  /* ---- ZONE 5 ---- */
-  document.getElementById('z5-actions').innerHTML =
-    weeklyActions(rows).map(a=>`<li>${a}</li>`).join('');
-  const platform = [
-    `<li>Section 4 — Manufacturing and production is your next step.</li>`,
-    `<li>Your compliance roadmap travels with you into the next module.</li>`
-  ];
-  if(backwardReferral())
-    platform.push(`<li class="back">Haven't completed Section 2 — Sourcing and materials? That's worth revisiting before you finalize your product spec.</li>`);
-  document.getElementById('z5-platform').innerHTML = platform.join('');
-
-  document.getElementById('z5-terms').innerHTML = relevantTerms(rows).map(term=>
-    `<div class="term"><b>${term}</b> — ${GLOSSARY[term]}</div>`).join('');
-
-  /* flash the changed zone */
-  if(changed){
-    const map={stage:['z1'],category:['z1'],markets:['z1'],channel:['z1'],cert:['z1']};
-    document.querySelectorAll('.zone').forEach(z=>{
-      z.classList.remove('flash'); void z.offsetWidth; z.classList.add('flash');
+function srcTag(s){
+  if(!s) return '';
+  const map={user:['src-user','User-entered'],default:['src-default','Default'],example:['src-example','From example']};
+  const [cls,lbl]=map[s];
+  return `<span class="iv-src ${cls}">${lbl}</span>`;
+}
+function renderIV(){
+  const tv=document.getElementById('tv-iv');
+  let rows='';
+  ["P1","P2","P3","P4","P5"].forEach(k=>{
+    const p=PROMPTS[k];
+    const a=S.answers[k];
+    let valHtml;
+    if(a===null || (Array.isArray(a)&&a.length===0&&S.sources[k]!=='user')){
+      valHtml=`<div class="iv-val empty">Not answered yet</div>`;
+    } else if(Array.isArray(a)){
+      const labels = a.length? a.map(v=>{
+        const o=p.options.find(x=>(typeof x==='string'?x:x.v)===v);
+        return o?(typeof o==='string'?o:o.l):v;
+      }).join(', ') : 'None';
+      valHtml=`<div class="iv-val">${labels}</div>`;
+    } else {
+      valHtml=`<div class="iv-val">${a}</div>`;
+    }
+    const editable = S.generated && a!==null;
+    rows+=`<div class="iv-row">
+      <div class="iv-key">${k}</div>
+      <div>
+        <div class="iv-q">${p.q}${editable?`<span class="iv-editlink" data-edit="${k}">edit</span>`:''}</div>
+        ${valHtml}
+        ${S.sources[k]?srcTag(S.sources[k]):''}
+        <div class="iv-edit" id="edit-${k}"></div>
+      </div>
+    </div>`;
+  });
+  tv.innerHTML=`<div class="iv-intro">Every answer is recorded here as you go. After your roadmap is built, these become editable — change one and the roadmap regenerates.</div>${rows}`;
+  tv.querySelectorAll('[data-edit]').forEach(el=>{
+    el.onclick=()=>openEditor(el.dataset.edit);
+  });
+}
+function openEditor(k){
+  const p=PROMPTS[k];
+  const box=document.getElementById('edit-'+k);
+  if(box.style.display==='block'){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  if(p.type==='select'){
+    const sel=document.createElement('select');
+    p.options.forEach(o=>{
+      const opt=document.createElement('option');
+      opt.textContent=o; if(o===S.answers[k])opt.selected=true;
+      sel.appendChild(opt);
     });
+    sel.onchange=()=>{
+      let v=sel.value;
+      if(k==='P1'&&v==='Not sure / Other'){ S.answers.P1='Not sure / Other'; S.sources.P1='default'; }
+      else if(k==='P5'&&v==='Not sure'){ S.answers.P5='Not sure'; S.sources.P5='default'; }
+      else { S.answers[k]=v; S.sources[k]='user'; }
+      box.style.display='none'; regenAll();
+    };
+    box.appendChild(sel);
+  } else {
+    const wrap=document.createElement('div');
+    wrap.className='iv-chips';
+    const cur=(S.answers[k]||[]).slice();
+    p.options.forEach(o=>{
+      const v=typeof o==='string'?o:o.v;
+      const l=typeof o==='string'?o:o.l;
+      if(v==='none')return;
+      const c=document.createElement('button');
+      c.className='iv-chip'+(cur.includes(v)?' on':'');
+      c.textContent=l;
+      c.onclick=()=>{
+        const idx=cur.indexOf(v);
+        if(idx>-1)cur.splice(idx,1); else cur.push(v);
+        c.classList.toggle('on');
+        S.answers[k]=cur.slice(); S.sources[k]='user';
+        regenAll();
+      };
+      wrap.appendChild(c);
+    });
+    box.appendChild(wrap);
+  }
+}
+/* edit -> recompute everything */
+function regenAll(){
+  renderIV(); populateCards(); renderDeliv();
+  document.querySelectorAll('.tabview.active .zone, .tabview.active .card').forEach(z=>{
+    z.classList.remove('flash'); void z.offsetWidth; z.classList.add('flash');
+  });
+}
+
+/* ====================================================================
+   TAB: CARDS
+   ==================================================================== */
+const CARD_DEFS = [
+  {n:"Card 1",t:"Your Situation"},
+  {n:"Card 2",t:"Compliance Scorecard"},
+  {n:"Card 3",t:"Industry Benchmarks"},
+  {n:"Card 4",t:"Readiness Status"},
+  {n:"Card 5",t:"Coach Moment"},
+  {n:"Card 6",t:"What's Next — This Week"},
+  {n:"Card 7",t:"What's Next — On Platform"},
+  {n:"Card 8",t:"Terms in Your Roadmap"}
+];
+function renderCards(){
+  const tv=document.getElementById('tv-cards');
+  tv.innerHTML=`<div class="cards-intro">Your roadmap builds here, one card at a time, once you've answered the questions.</div>`+
+    CARD_DEFS.map(c=>`
+      <div class="card empty" id="card-${c.n.replace(' ','')}">
+        <div class="cnum">${c.n}</div>
+        <div class="ctitle">${c.t}</div>
+        <div class="cbody">
+          <div class="placeholder-bar"></div>
+          <div class="placeholder-bar short"></div>
+        </div>
+      </div>`).join('');
+  document.getElementById('cards-count').textContent='0/8';
+}
+function cardContent(d,rows,r){
+  const cm=coachMoments(d);
+  return {
+    Card1:`<b>${S.stage}, ${S.industry}.</b> You're building in the ${d.cat} category, selling in ${d.markets.join(' & ')} via ${d.channel.toLowerCase()}. Certification is ${d.cert.toLowerCase()}.`,
+    Card2:`${rows.length} standards apply to you. ${r.gaps} gap${r.gaps!==1?'s':''}, ${r.prog} in progress, ${r.complete} complete.`,
+    Card3:`${CATEGORIES[d.cat].timeline} to certification · ${CATEGORIES[d.cat].cost} typical lab cost · ${CATEGORIES[d.cat].users} for user testing.`,
+    Card4:`<b>${r.pct}% ready — ${r.tier}.</b> ${r.gaps>0?'Lab certification and channel documentation are the critical path.':'Your compliance work is in good shape.'}`,
+    Card5:`${cm.length} coaching question${cm.length>1?'s':''} for your stage: ${cm.map(c=>'"'+c.q.slice(0,52)+'…"').join(' ')}`,
+    Card6:weeklyActions(rows).map(a=>'• '+a).join('<br>'),
+    Card7:`• Section 4 — Manufacturing is your next step.<br>• Your roadmap travels with you into the next module.${backwardReferral()?'<br>• <span style="color:var(--amber)">Revisit Section 2 — Sourcing & Materials.</span>':''}`,
+    Card8:relevantTerms(rows).map(t=>'<b>'+t+'</b>').join(' · ')
+  };
+}
+function populateCards(){
+  if(!S.generated)return;
+  const d=derive(); const rows=buildRows(d); const r=readiness(rows);
+  const content=cardContent(d,rows,r);
+  CARD_DEFS.forEach(c=>{
+    const id='card-'+c.n.replace(' ','');
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.remove('empty');
+    el.querySelector('.cbody').innerHTML=content[c.n.replace(' ','')];
+  });
+  document.getElementById('cards-count').textContent='8/8';
+}
+async function populateCardsSequentially(){
+  const d=derive(); const rows=buildRows(d); const r=readiness(rows);
+  const content=cardContent(d,rows,r);
+  for(let i=0;i<CARD_DEFS.length;i++){
+    await new Promise(res=>setTimeout(res,260));
+    const c=CARD_DEFS[i];
+    const el=document.getElementById('card-'+c.n.replace(' ',''));
+    el.classList.remove('empty');
+    el.querySelector('.cbody').innerHTML=content[c.n.replace(' ','')];
+    el.classList.add('flash');
+    document.getElementById('cards-count').textContent=`${i+1}/8`;
   }
 }
 
 /* ====================================================================
-   WIRE UP CONTROLS
+   TAB: DELIVERABLE
    ==================================================================== */
-document.getElementById('i-stage').addEventListener('change',e=>{ state.stage=e.target.value; render(true); });
-document.getElementById('i-cat').addEventListener('change',e=>{ state.category=e.target.value; render(true); });
-document.getElementById('i-channel').addEventListener('change',e=>{ state.channel=e.target.value; render(true); });
-document.getElementById('i-cert').addEventListener('change',e=>{ state.cert=e.target.value; render(true); });
-
-document.getElementById('i-market').addEventListener('click',e=>{
-  if(!e.target.classList.contains('chip-toggle')) return;
-  const v=e.target.dataset.v;
-  if(state.markets.includes(v)){
-    if(state.markets.length===1) return; // keep at least one
-    state.markets=state.markets.filter(m=>m!==v);
-    e.target.classList.remove('on');
-  } else {
-    state.markets.push(v); e.target.classList.add('on');
+function renderDeliv(){
+  const tv=document.getElementById('tv-deliv');
+  if(!S.generated){
+    tv.innerHTML=`<div class="deliv-empty">
+      <div class="di">Your roadmap will appear here</div>
+      <div class="ds">Answer the questions in the chat — the full Compliance Readiness Roadmap builds once you're done.</div>
+    </div>`;
+    return;
   }
-  render(true);
+  const d=derive(); const rows=buildRows(d); const r=readiness(rows);
+  const cm=coachMoments(d);
+  const circ=2*Math.PI*44, dash=circ*(r.pct/100);
+  const mc=r.pct===0?"#9aa1ab":(r.pct>=100?"#2e7d6b":"#b26b00");
+  const addons=d.markets.filter(m=>MARKET_ADDON[m]).map(m=>MARKET_ADDON[m]);
+
+  tv.innerHTML=`
+    <div class="zone">
+      <div class="zlabel">Your profile snapshot</div>
+      <div class="ztitle"><span class="znum">1</span>Here's what we built this roadmap around</div>
+      <div class="snapshot">
+        ${[["Business stage",S.stage],["Product category",d.cat],["Target market",d.markets.join(", ")],
+           ["Sales channel",d.channel],["Certification status",d.cert]]
+          .map(s=>`<div class="snap-cell"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zlabel">Compliance readiness scorecard</div>
+      <div class="ztitle"><span class="znum">2</span>Where you stand against what's required</div>
+      <table class="scorecard">
+        <thead><tr><th>Standard</th><th class="c">Applies</th><th>Status</th></tr></thead>
+        <tbody>
+        ${rows.map(row=>{
+          const badge=row.status==='gap'?'<span class="badge gap">Gap</span>'
+            :row.status==='prog'?'<span class="badge prog">In progress</span>'
+            :'<span class="badge done">Complete</span>';
+          return `<tr class="row-${row.status}">
+            <td><div class="std-name">${row.n}</div><div class="std-desc">${row.d}</div></td>
+            <td class="applies">Yes</td><td>${badge}</td></tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+      <div class="bench-label">Industry benchmarks — ${d.cat}, ${d.markets.join(" / ")}</div>
+      <div class="bench">
+        <div class="bench-cell"><div class="big">${CATEGORIES[d.cat].timeline}</div>
+          ${addons.length?`<div style="font-size:10px;color:var(--amber);font-weight:500;margin-top:3px;">${addons.join(' ')}</div>`:''}
+          <div class="cap">Average time to certification</div></div>
+        <div class="bench-cell"><div class="big">${CATEGORIES[d.cat].cost}</div><div class="cap">Typical lab testing cost range</div></div>
+        <div class="bench-cell"><div class="big">${CATEGORIES[d.cat].users}</div><div class="cap">Recommended user test participants</div></div>
+      </div>
+      <div class="bench-foot">Industry standard estimates — verify with a compliance professional before finalizing.</div>
+    </div>
+
+    <div class="zone">
+      <div class="zlabel">Readiness status</div>
+      <div class="ztitle"><span class="znum">3</span>Compliance readiness</div>
+      <div class="readiness">
+        <div class="meter">
+          <svg width="104" height="104" viewBox="0 0 104 104">
+            <circle cx="52" cy="52" r="44" fill="none" stroke="#eceef0" stroke-width="11"/>
+            <circle cx="52" cy="52" r="44" fill="none" stroke="${mc}" stroke-width="11"
+              stroke-linecap="round" stroke-dasharray="${dash} ${circ}"/>
+          </svg>
+          <div class="pct"><div class="n">${r.pct}%</div><div class="w">ready</div></div>
+        </div>
+        <div>
+          <span class="tier ${r.tc}">${r.tier}</span>
+          <div class="narr">${readinessNarr(r)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zlabel">Coach moment</div>
+      <div class="ztitle"><span class="znum">4</span>Two things worth sitting with</div>
+      ${cm.map(c=>`<div class="coach"><div class="q">${c.q}</div><div class="src">${c.src}</div></div>`).join('')}
+    </div>
+
+    <div class="zone">
+      <div class="zlabel">What's next</div>
+      <div class="ztitle"><span class="znum">5</span>Where to go from here</div>
+      <div class="next-grid">
+        <div class="next-col"><h4>In your business this week</h4>
+          <ul>${weeklyActions(rows).map(a=>`<li>${a}</li>`).join('')}</ul></div>
+        <div class="next-col"><h4>On the platform</h4>
+          <ul>
+            <li>Section 4 — Manufacturing and production is your next step.</li>
+            <li>Your compliance roadmap travels with you into the next module.</li>
+            ${backwardReferral()?'<li class="back">Haven&#39;t completed Section 2 — Sourcing and materials? That&#39;s worth revisiting before you finalize your product spec.</li>':''}
+          </ul></div>
+      </div>
+      <div class="bench-label">Terms to know</div>
+      <div class="terms-grid">
+        ${relevantTerms(rows).map(t=>`<div class="term"><b>${t}</b> — ${GLOSSARY[t]}</div>`).join('')}
+      </div>
+    </div>`;
+}
+function readinessNarr(r){
+  if(r.gaps===0&&r.prog===0)
+    return "Every applicable standard is complete. Your compliance work is launch-ready — keep your documentation current.";
+  const parts=[];
+  if(r.gaps>0)parts.push(`${r.gaps} gap${r.gaps>1?'s':''} identified before launch`);
+  if(r.prog>0)parts.push(`${r.prog} item${r.prog>1?'s':''} in progress`);
+  if(r.complete>0)parts.push(`${r.complete} complete`);
+  let s=parts.join(', ').replace(/,([^,]*)$/,', and$1')+
+    ". Lab certifications and channel documentation are the critical path items.";
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+
+/* ====================================================================
+   TABS + PROFILE HEADER
+   ==================================================================== */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tabview').forEach(v=>v.classList.remove('active'));
+  document.getElementById('tv-'+name).classList.add('active');
+}
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>switchTab(t.dataset.tab);
+});
+document.getElementById('pf-stage').addEventListener('change',e=>{
+  S.stage=e.target.value;
+  if(S.generated){ regenAll(); }
+});
+document.getElementById('pf-industry').addEventListener('change',e=>{
+  S.industry=e.target.value;
+  const m=INDUSTRY_MAP[S.industry];
+  S.btype=m.type;
+  document.getElementById('pf-type').textContent=m.type;
+  document.getElementById('scope-warn').style.display = m.type!=='Product'?'inline-block':'none';
+  if(S.generated){ regenAll(); }
 });
 
-document.getElementById('i-testing').addEventListener('click',e=>{
-  if(!e.target.classList.contains('chip-toggle')) return;
-  const v=e.target.dataset.v;
-  if(state.testing.includes(v)){
-    state.testing=state.testing.filter(x=>x!==v);
-    e.target.classList.remove('on');
-  } else {
-    state.testing.push(v); e.target.classList.add('on');
-  }
-  render(true);
-});
-
-/* initial paint */
-render(false);
+/* ====================================================================
+   GO
+   ==================================================================== */
+start();
 </script>
 
 </body>
