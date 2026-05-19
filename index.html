@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Popstart — Compliance Readiness Roadmap</title>
+<style>
+  /* ============ fonts & tokens ============ */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Newsreader:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root{
+    --navy:#1f3a5f; --navy-soft:#2e4f7a;
+    --teal:#2e7d6b; --teal-bg:#e4f0ec;
+    --amber:#b26b00; --amber-bg:#fbefd9;
+    --red:#b23b3b; --red-bg:#fbecec;
+    --ink:#23272e; --gray:#5a626e; --faint:#8b929c;
+    --rule:#d9dfe6; --paper:#ffffff; --shell:#eef0f2;
+    --display:'Fraunces',Georgia,serif;
+    --serif:'Newsreader',Georgia,serif;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--shell); color:var(--ink);
+    font-family:var(--sans); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 18px 80px;
+  }
+
+  /* ============ layout shell ============ */
+  .wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:26px;align-items:start;}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr;}}
+
+  /* ============ control panel ============ */
+  .panel{
+    background:var(--paper);border:1px solid var(--rule);border-radius:14px;
+    padding:22px 20px;position:sticky;top:24px;
+  }
+  @media(max-width:880px){.panel{position:static;}}
+  .panel .eyebrow{font-size:10px;font-weight:600;letter-spacing:.16em;color:var(--teal);text-transform:uppercase;}
+  .panel h2{font-family:var(--display);font-weight:500;font-size:21px;color:var(--navy);margin:3px 0 4px;line-height:1.2;}
+  .panel .sub{font-size:12.5px;color:var(--gray);margin-bottom:18px;}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--navy);
+    text-transform:uppercase;margin-bottom:6px;}
+  .field .pmeta{font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0;}
+  select{
+    width:100%;font-family:var(--sans);font-size:13.5px;color:var(--ink);
+    padding:9px 10px;border:1px solid var(--rule);border-radius:8px;background:#fcfcfd;cursor:pointer;
+  }
+  select:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip-toggle{
+    font-family:var(--sans);font-size:12px;padding:6px 11px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--rule);background:#fcfcfd;color:var(--gray);transition:all .14s ease;
+  }
+  .chip-toggle:hover{border-color:var(--teal);}
+  .chip-toggle.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .panel .note{font-size:11px;color:var(--faint);margin-top:14px;line-height:1.5;
+    border-top:1px solid var(--rule);padding-top:12px;}
+  .panel .note b{color:var(--gray);}
+
+  /* ============ the deliverable page ============ */
+  .deliverable{
+    background:var(--paper);border:1px solid var(--rule);border-radius:14px;
+    box-shadow:0 1px 3px rgba(20,30,50,.05),0 14px 38px -22px rgba(20,30,50,.28);
+    overflow:hidden;
+  }
+  .doc-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:24px 40px 16px;border-bottom:1px solid var(--rule);
+  }
+  .brand{font-family:var(--sans);font-weight:600;letter-spacing:.14em;font-size:13px;color:var(--navy);}
+  .doc-head .right{font-size:11.5px;color:var(--faint);}
+  .doc-body{padding:14px 40px 40px;}
+  @media(max-width:880px){.doc-head{padding:20px 22px 14px;}.doc-body{padding:12px 22px 30px;}}
+
+  /* zone scaffold */
+  .zone{padding:26px 0;border-bottom:1px solid var(--rule);}
+  .zone:last-child{border-bottom:none;}
+  .zlabel{font-size:10.5px;font-weight:600;letter-spacing:.17em;color:var(--faint);text-transform:uppercase;}
+  .ztitle{font-family:var(--display);font-weight:500;font-size:25px;color:var(--navy);
+    line-height:1.15;margin:3px 0 16px;}
+  .znum{font-family:var(--display);color:var(--teal);font-size:18px;font-weight:600;
+    margin-right:7px;font-variant-numeric:tabular-nums;}
+
+  /* zone 1 — profile chips */
+  .snapshot{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
+  @media(max-width:680px){.snapshot{grid-template-columns:repeat(2,1fr);}}
+  .snap-cell{background:#fafbfc;padding:13px 14px;}
+  .snap-cell .k{font-size:10.5px;color:var(--faint);margin-bottom:3px;}
+  .snap-cell .v{font-family:var(--serif);font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.25;}
+
+  /* zone 2 — scorecard */
+  .scorecard{width:100%;border-collapse:collapse;margin-bottom:22px;}
+  .scorecard thead th{
+    font-size:10px;font-weight:600;letter-spacing:.11em;color:var(--faint);text-transform:uppercase;
+    text-align:left;padding:0 14px 8px;border-bottom:1px solid var(--rule);
+  }
+  .scorecard thead th.c{text-align:center;}
+  .scorecard td{padding:13px 14px;border-bottom:1px solid #eef1f4;vertical-align:middle;}
+  .scorecard tr:last-child td{border-bottom:none;}
+  .std-name{font-weight:600;font-size:14px;color:var(--ink);}
+  .std-desc{font-size:12px;color:var(--gray);margin-top:1px;}
+  .applies{text-align:center;font-size:13px;color:var(--gray);}
+  .status-cell{width:150px;}
+  .badge{
+    display:inline-block;font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:6px;
+    letter-spacing:.01em;
+  }
+  .badge.gap{background:var(--red-bg);color:var(--red);}
+  .badge.prog{background:var(--amber-bg);color:var(--amber);}
+  .badge.done{background:var(--teal-bg);color:var(--teal);}
+  td.status-cell{text-align:left;}
+  tr.row-gap td{background:linear-gradient(90deg,rgba(178,59,59,.045),transparent 40%);}
+  tr.row-prog td{background:linear-gradient(90deg,rgba(178,107,0,.05),transparent 40%);}
+  tr.row-done td{background:linear-gradient(90deg,rgba(46,125,107,.05),transparent 40%);}
+
+  /* benchmark block */
+  .bench-label{font-size:10.5px;font-weight:600;letter-spacing:.13em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:9px;}
+  .bench{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
+  @media(max-width:680px){.bench{grid-template-columns:1fr;}}
+  .bench-cell{background:#fafbfc;padding:18px 16px;text-align:center;}
+  .bench-cell .big{font-family:var(--display);font-weight:600;font-size:27px;color:var(--navy);line-height:1;}
+  .bench-cell .cap{font-size:11.5px;color:var(--gray);margin-top:7px;}
+  .bench-foot{font-size:11px;font-style:italic;color:var(--faint);margin-top:10px;}
+
+  /* zone 3 — readiness */
+  .readiness{display:flex;gap:24px;align-items:center;}
+  @media(max-width:680px){.readiness{flex-direction:column;align-items:flex-start;gap:14px;}}
+  .meter{flex-shrink:0;width:128px;height:128px;position:relative;}
+  .meter svg{transform:rotate(-90deg);}
+  .meter .pct{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;}
+  .meter .pct .n{font-family:var(--display);font-weight:600;font-size:32px;color:var(--navy);line-height:1;}
+  .meter .pct .w{font-size:10px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin-top:2px;}
+  .readiness .text .tier{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    display:inline-block;padding:4px 11px;border-radius:6px;margin-bottom:9px;}
+  .tier.t-not{background:#eceef0;color:var(--gray);}
+  .tier.t-prog{background:var(--amber-bg);color:var(--amber);}
+  .tier.t-ready{background:var(--teal-bg);color:var(--teal);}
+  .readiness .text .narr{font-family:var(--serif);font-size:16px;color:var(--ink);line-height:1.5;max-width:560px;}
+
+  /* zone 4 — coach moment */
+  .coach{border-left:3px solid var(--navy-soft);background:#f7f8fa;
+    padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:14px;}
+  .coach:last-child{margin-bottom:0;}
+  .coach .q{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink);line-height:1.5;}
+  .coach .src{font-size:11px;color:var(--faint);margin-top:8px;letter-spacing:.02em;}
+
+  /* zone 5 — what's next */
+  .next-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:22px;}
+  @media(max-width:680px){.next-grid{grid-template-columns:1fr;}}
+  .next-col{background:#fafbfc;padding:16px 18px;}
+  .next-col h4{font-size:10.5px;font-weight:600;letter-spacing:.11em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:11px;}
+  .next-col ul{list-style:none;}
+  .next-col li{font-size:13.5px;color:var(--ink);line-height:1.5;padding-left:15px;position:relative;
+    margin-bottom:9px;}
+  .next-col li:last-child{margin-bottom:0;}
+  .next-col li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;
+    border-radius:50%;background:var(--teal);}
+  .next-col li.back{color:var(--amber);}
+  .next-col li.back::before{background:var(--amber);}
+
+  .terms{margin-top:4px;}
+  .terms .bench-label{margin-bottom:10px;}
+  .terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 26px;}
+  @media(max-width:680px){.terms-grid{grid-template-columns:1fr;}}
+  .term{font-size:12.5px;color:var(--gray);line-height:1.5;}
+  .term b{color:var(--navy);font-weight:600;}
+
+  /* tiny flash animation on update */
+  @keyframes flash{0%{background-color:rgba(46,125,107,.16);}100%{background-color:transparent;}}
+  .flash{animation:flash .6s ease;}
+
+  .footline{font-size:10.5px;color:var(--faint);text-align:center;padding-top:22px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ CONTROL PANEL ============ -->
+  <aside class="panel">
+    <div class="eyebrow">Interactive prototype</div>
+    <h2>Roadmap inputs</h2>
+    <div class="sub">Change any input — the five zones below update live. This is the dependency map from the ADD, running.</div>
+
+    <div class="field">
+      <label>Business stage <span class="pmeta">· profile</span></label>
+      <select id="i-stage">
+        <option>Just Exploring</option>
+        <option selected>Pre-Launch</option>
+        <option>Already in Business</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>P1 · Product category</label>
+      <select id="i-cat">
+        <option>Consumer Electronics</option>
+        <option>Food &amp; Beverage</option>
+        <option>Apparel &amp; Accessories</option>
+        <option>Health &amp; Beauty</option>
+        <option>Children's Products</option>
+        <option>Sporting Goods</option>
+        <option selected>Home Goods</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>P2 · Target market <span class="pmeta">· multi, uncapped</span></label>
+      <div class="chips" id="i-market">
+        <button class="chip-toggle on" data-v="United States">United States</button>
+        <button class="chip-toggle" data-v="European Union">European Union</button>
+        <button class="chip-toggle" data-v="Canada">Canada</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>P3 · Testing completed <span class="pmeta">· multi, uncapped</span></label>
+      <div class="chips" id="i-testing">
+        <button class="chip-toggle" data-v="functional">Functional</button>
+        <button class="chip-toggle" data-v="durability">Durability</button>
+        <button class="chip-toggle on" data-v="user">User testing</button>
+        <button class="chip-toggle" data-v="documentation">Documentation</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>P4 · Sales channel</label>
+      <select id="i-channel">
+        <option selected>Online marketplace</option>
+        <option>Direct-to-consumer</option>
+        <option>Wholesale / retail</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>P5 · Certification status</label>
+      <select id="i-cert">
+        <option selected>Not started</option>
+        <option>In progress</option>
+        <option>Complete</option>
+      </select>
+    </div>
+
+    <div class="note">
+      <b>Prototype scope.</b> Renders the ADD's five-zone deliverable with the dependency cascade live.
+      Benchmark figures are the ADD's industry-average reference data — estimates, not guarantees.
+    </div>
+  </aside>
+
+  <!-- ============ DELIVERABLE ============ -->
+  <main class="deliverable" id="deliverable">
+    <div class="doc-head">
+      <div class="brand">POPSTART</div>
+      <div class="right">Testing &amp; compliance roadmap — Section 3</div>
+    </div>
+    <div class="doc-body">
+
+      <!-- ZONE 1 -->
+      <section class="zone">
+        <div class="zlabel">Your profile snapshot</div>
+        <div class="ztitle"><span class="znum">1</span>Here's what we built this roadmap around</div>
+        <div class="snapshot" id="z1"></div>
+      </section>
+
+      <!-- ZONE 2 -->
+      <section class="zone">
+        <div class="zlabel">Compliance readiness scorecard</div>
+        <div class="ztitle"><span class="znum">2</span>Where you stand against what's required</div>
+        <table class="scorecard">
+          <thead><tr>
+            <th>Standard</th><th class="c">Applies to you</th><th>Status</th>
+          </tr></thead>
+          <tbody id="z2-rows"></tbody>
+        </table>
+        <div class="bench-label" id="z2-bench-label">Industry benchmarks</div>
+        <div class="bench" id="z2-bench"></div>
+        <div class="bench-foot">Industry standard estimates — verify with a compliance professional before finalizing.</div>
+      </section>
+
+      <!-- ZONE 3 -->
+      <section class="zone">
+        <div class="zlabel">Readiness status</div>
+        <div class="ztitle"><span class="znum">3</span>Compliance readiness</div>
+        <div class="readiness">
+          <div class="meter" id="z3-meter"></div>
+          <div class="text">
+            <span class="tier" id="z3-tier"></span>
+            <div class="narr" id="z3-narr"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ZONE 4 -->
+      <section class="zone">
+        <div class="zlabel">Coach moment</div>
+        <div class="ztitle"><span class="znum">4</span>Two things worth sitting with</div>
+        <div id="z4"></div>
+      </section>
+
+      <!-- ZONE 5 -->
+      <section class="zone">
+        <div class="zlabel">What's next</div>
+        <div class="ztitle"><span class="znum">5</span>Where to go from here</div>
+        <div class="next-grid">
+          <div class="next-col">
+            <h4>In your business this week</h4>
+            <ul id="z5-actions"></ul>
+          </div>
+          <div class="next-col">
+            <h4>On the platform</h4>
+            <ul id="z5-platform"></ul>
+          </div>
+        </div>
+        <div class="terms">
+          <div class="bench-label">Terms to know</div>
+          <div class="terms-grid" id="z5-terms"></div>
+        </div>
+      </section>
+
+      <div class="footline">Popstart — Module 5, Section 3 · Compliance Readiness Roadmap · generated from your inputs</div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+/* ====================================================================
+   DATA — the ADD's benchmark reference table & glossary
+   ==================================================================== */
+const CATEGORIES = {
+  "Consumer Electronics":{ standards:[
+      {n:"FCC Part 15",d:"Electronics emissions compliance",test:"functional"},
+      {n:"UL certification",d:"Product safety — electrical",test:"durability"}],
+    timeline:"8–16 weeks",cost:"$3K–$8K",users:"5+ people",reg:true },
+  "Food & Beverage":{ standards:[
+      {n:"FDA registration",d:"Food facility registration",test:"documentation"},
+      {n:"Nutrition labeling",d:"Allergen disclosure & labeling",test:"documentation"}],
+    timeline:"4–12 weeks",cost:"$2K–$6K",users:"8+ people",reg:true },
+  "Apparel & Accessories":{ standards:[
+      {n:"CPSC compliance",d:"Consumer Product Safety Commission",test:"functional"},
+      {n:"ASTM D5489",d:"Care labeling standards",test:"documentation"}],
+    timeline:"4–10 weeks",cost:"$1K–$4K",users:"5+ people",reg:false },
+  "Health & Beauty":{ standards:[
+      {n:"FDA cosmetic registration",d:"Cosmetic product registration",test:"documentation"},
+      {n:"INCI labeling",d:"Ingredient labeling standard",test:"documentation"}],
+    timeline:"6–14 weeks",cost:"$2K–$7K",users:"8+ people",reg:true },
+  "Children's Products":{ standards:[
+      {n:"ASTM F963",d:"Toy safety — mandatory",test:"durability"},
+      {n:"CPSIA third-party",d:"Mandatory third-party lab testing",test:"functional"},
+      {n:"GCC required",d:"General Conformity Certificate",test:"documentation"}],
+    timeline:"10–20 weeks",cost:"$4K–$12K",users:"8+ people",reg:true },
+  "Sporting Goods":{ standards:[
+      {n:"ASTM standards",d:"Performance & safety by category",test:"durability"},
+      {n:"CPSC compliance",d:"Consumer Product Safety Commission",test:"functional"}],
+    timeline:"6–14 weeks",cost:"$2K–$6K",users:"5+ people",reg:false },
+  "Home Goods":{ standards:[
+      {n:"ASTM F963",d:"Consumer product safety — general",test:"durability"},
+      {n:"CPSC compliance",d:"Consumer Product Safety Commission",test:"functional"}],
+    timeline:"6–12 weeks",cost:"$1.5K–$5K",users:"5–10 people",reg:false }
+};
+/* user-testing baseline row applies to every category */
+const USER_TEST_ROW = {n:"User testing — 5 to 10 participants",d:"Real-world functional validation",test:"user"};
+/* marketplace row appears only for the marketplace channel */
+const MARKETPLACE_ROW = {n:"Marketplace compliance docs",d:"Channel-specific compliance requirements",test:"_channel"};
+
+const GLOSSARY = {
+  "CPSC":"Consumer Product Safety Commission. The federal agency that sets and enforces product safety standards in the US.",
+  "ASTM":"American Society for Testing and Materials. Sets voluntary consensus standards widely adopted in manufacturing.",
+  "Accredited lab":"A third-party testing facility recognized by a regulatory body to certify product compliance.",
+  "GCC":"General Conformity Certificate. A written certification that your product meets all applicable federal safety rules.",
+  "FDA":"Food and Drug Administration. The US body that regulates products ingested or applied to the skin.",
+  "FCC":"Federal Communications Commission. Sets standards for electronic devices that emit radio-frequency signals.",
+  "CE Mark":"A certification mark required for products sold in the European Union, indicating EU safety compliance.",
+  "Compliance testing":"Verifying a product meets the legal and regulatory standards required to sell it in a market."
+};
+
+/* market timeline add-ons (weeks added) */
+const MARKET_ADDON = { "European Union":"+4–8 wks (EU)", "Canada":"+3–6 wks (Canada)" };
+
+/* ====================================================================
+   STATE
+   ==================================================================== */
+const state = {
+  stage:"Pre-Launch", category:"Home Goods",
+  markets:["United States"], testing:["user"],
+  channel:"Online marketplace", cert:"Not started"
+};
+
+/* ====================================================================
+   DERIVATION — the dependency map in code
+   ==================================================================== */
+function buildRows(){
+  const cat = CATEGORIES[state.category];
+  let rows = cat.standards.slice();
+  rows.push(USER_TEST_ROW);
+  if(state.channel === "Online marketplace") rows.push(MARKETPLACE_ROW);
+
+  return rows.map(r=>{
+    let status;
+    if(r.test === "_channel"){
+      // marketplace docs: progress unless documentation testing done
+      status = state.testing.includes("documentation") ? "done" : "prog";
+    } else if(r.test === "documentation"){
+      status = state.testing.includes("documentation") ? "done"
+             : (state.cert==="In progress" ? "prog" : "gap");
+    } else if(state.testing.includes(r.test)){
+      status = "done";
+    } else if(state.cert === "Complete"){
+      status = "done";
+    } else if(state.cert === "In progress"){
+      status = "prog";
+    } else {
+      status = "gap";
+    }
+    return {...r, status};
+  });
+}
+
+function readiness(rows){
+  const total = rows.length;
+  const complete = rows.filter(r=>r.status==="done").length;
+  const prog = rows.filter(r=>r.status==="prog").length;
+  // ADD OQ-2: partial credit for In Progress rows (0.5). Documented choice.
+  const pct = Math.round(((complete + prog*0.5)/total)*100);
+  let tier, tierClass;
+  if(pct===0){ tier="Not Started"; tierClass="t-not"; }
+  else if(pct>=100){ tier="Launch Ready"; tierClass="t-ready"; }
+  else { tier="In Progress"; tierClass="t-prog"; }
+  return {pct, complete, prog, gaps:total-complete-prog, total, tier, tierClass};
+}
+
+/* coach moment selection — the gap-trigger logic from ADD §6.2 */
+function coachMoments(rows){
+  const noUser = !state.testing.includes("user");
+  const noDoc = !state.testing.includes("documentation");
+  const candidates = [];
+
+  if(state.stage==="Just Exploring"){
+    if(state.cert==="Not started" && CATEGORIES[state.category].reg)
+      candidates.push({q:"Do you know which regulatory standards apply to your product before you finalize the design? Changing a material after certification costs more than getting it right the first time.",src:"Just Exploring — compliance and design"});
+    if(noUser)
+      candidates.push({q:"Have you put your concept in front of real people yet? Even five conversations before you build anything will change what you build.",src:"Just Exploring — user testing"});
+  }
+  if(state.stage==="Pre-Launch"){
+    if(noUser)
+      candidates.push({q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review — and it's the one test you can run this week for free.",src:"Pre-launch — functional and user testing"});
+    if(state.cert!=="Complete")
+      candidates.push({q:"Do you know which lab you're sending your product to, and how long their queue is right now? Certification timelines are your longest lead time. Start that conversation before you need it.",src:"Pre-launch — compliance and certification"});
+  }
+  if(state.stage==="Already in Business"){
+    if(state.cert!=="Complete")
+      candidates.push({q:"When did you last audit your certifications against your current design? A change you made six months ago may have opened a gap you don't know about yet.",src:"Already in business — certification audit"});
+    if(noDoc)
+      candidates.push({q:"If a retailer asked for your compliance documentation today, how long would it take you to pull it together? That answer tells you exactly what to do next.",src:"Already in business — documentation"});
+  }
+
+  // fallbacks so two always show
+  const fallback = [
+    {q:"Have five real people used your product without you in the room? What they struggle with tells you more than any internal review.",src:"All stages — user validation"},
+    {q:"Do you know which lab you're sending your product to, and how long their queue is right now? Start that conversation before you need it.",src:"All stages — certification lead time"}
+  ];
+  let i=0;
+  while(candidates.length<2 && i<fallback.length){
+    if(!candidates.find(c=>c.src===fallback[i].src)) candidates.push(fallback[i]);
+    i++;
+  }
+  return candidates.slice(0,2);
+}
+
+/* what's-next this-week actions, tied to gap rows */
+function weeklyActions(rows){
+  const acts=[];
+  if(rows.some(r=>r.status!=="done" && /CPSC|ASTM|FCC|UL|CPSIA|FDA/.test(r.n)))
+    acts.push("Contact an accredited lab — get on their calendar before you're under deadline pressure.");
+  if(rows.some(r=>r.test==="_channel" && r.status!=="done"))
+    acts.push("Pull your "+state.channel.toLowerCase()+" compliance requirements and map what's missing.");
+  if(!state.testing.includes("user"))
+    acts.push("Run an informal user test — five people from your target market, no coaching, just observe.");
+  if(!state.testing.includes("documentation"))
+    acts.push("Start a documentation folder now. Retailers and platforms will ask for it.");
+  if(acts.length<3)
+    acts.push("Re-confirm which standards apply to your category before you finalize your product spec.");
+  return acts.slice(0,3);
+}
+
+/* backward referral — ADD §7.2 / script §6A */
+function backwardReferral(){
+  if(state.stage==="Just Exploring") return true;
+  if(!state.testing.includes("user") && !state.testing.includes("functional")) return true;
+  return false;
+}
+
+/* glossary terms relevant to current state */
+function relevantTerms(rows){
+  const set = new Set();
+  rows.forEach(r=>{
+    if(/CPSC/.test(r.n)) set.add("CPSC");
+    if(/ASTM/.test(r.n)) set.add("ASTM");
+    if(/FDA/.test(r.n)) set.add("FDA");
+    if(/FCC/.test(r.n)) set.add("FCC");
+    if(/GCC/.test(r.n)) set.add("GCC");
+  });
+  set.add("Accredited lab");
+  if(state.markets.includes("European Union")) set.add("CE Mark");
+  if(set.size<4) set.add("Compliance testing");
+  return Array.from(set).slice(0,6);
+}
+
+/* ====================================================================
+   RENDER
+   ==================================================================== */
+function render(changed){
+  const rows = buildRows();
+  const r = readiness(rows);
+
+  /* ---- ZONE 1 ---- */
+  const snap = [
+    ["Business stage", state.stage],
+    ["Product category", state.category],
+    ["Target market", state.markets.join(", ")],
+    ["Sales channel", state.channel],
+    ["Certification status", state.cert]
+  ];
+  document.getElementById('z1').innerHTML = snap.map(s=>
+    `<div class="snap-cell"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('');
+
+  /* ---- ZONE 2 scorecard ---- */
+  document.getElementById('z2-rows').innerHTML = rows.map(row=>{
+    const badge = row.status==="gap"?`<span class="badge gap">Gap</span>`
+                : row.status==="prog"?`<span class="badge prog">In progress</span>`
+                : `<span class="badge done">Complete</span>`;
+    return `<tr class="row-${row.status}">
+      <td><div class="std-name">${row.n}</div><div class="std-desc">${row.d}</div></td>
+      <td class="applies">Yes</td>
+      <td class="status-cell">${badge}</td></tr>`;
+  }).join('');
+
+  /* ---- ZONE 2 benchmark ---- */
+  const cat = CATEGORIES[state.category];
+  let timeline = cat.timeline;
+  const addons = state.markets.filter(m=>MARKET_ADDON[m]).map(m=>MARKET_ADDON[m]);
+  const mLabel = "Industry benchmarks — "+state.category+", "+state.markets.join(" / ");
+  document.getElementById('z2-bench-label').textContent = mLabel.toUpperCase();
+  document.getElementById('z2-bench').innerHTML = [
+    [timeline + (addons.length?`<div style="font-size:11px;color:var(--amber);font-family:var(--sans);font-weight:500;margin-top:3px;">${addons.join(" ")}</div>`:""),"Average time to certification"],
+    [cat.cost,"Typical lab testing cost range"],
+    [cat.users,"Recommended user test participants"]
+  ].map(b=>`<div class="bench-cell"><div class="big">${b[0]}</div><div class="cap">${b[1]}</div></div>`).join('');
+
+  /* ---- ZONE 3 readiness meter ---- */
+  const circ = 2*Math.PI*54;
+  const dash = circ * (r.pct/100);
+  const meterColor = r.pct===0?"#9aa1ab":(r.pct>=100?"#2e7d6b":"#b26b00");
+  document.getElementById('z3-meter').innerHTML = `
+    <svg width="128" height="128" viewBox="0 0 128 128">
+      <circle cx="64" cy="64" r="54" fill="none" stroke="#eceef0" stroke-width="13"/>
+      <circle cx="64" cy="64" r="54" fill="none" stroke="${meterColor}" stroke-width="13"
+        stroke-linecap="round" stroke-dasharray="${dash} ${circ}"
+        style="transition:stroke-dasharray .5s ease;"/>
+    </svg>
+    <div class="pct"><div class="n">${r.pct}%</div><div class="w">ready</div></div>`;
+  const tierEl = document.getElementById('z3-tier');
+  tierEl.textContent = r.tier;
+  tierEl.className = "tier "+r.tierClass;
+  let narr;
+  if(r.gaps===0 && r.prog===0){
+    narr = "Every applicable standard is complete. Your compliance work is launch-ready — keep your documentation current.";
+  } else {
+    const parts=[];
+    if(r.gaps>0) parts.push(`${r.gaps} gap${r.gaps>1?'s':''} identified before launch`);
+    if(r.prog>0) parts.push(`${r.prog} item${r.prog>1?'s':''} in progress`);
+    if(r.complete>0) parts.push(`${r.complete} complete`);
+    narr = parts.join(", ").replace(/,([^,]*)$/,', and$1') +
+      ". Lab certifications and channel documentation are the critical path items.";
+    narr = narr.charAt(0).toUpperCase()+narr.slice(1);
+  }
+  document.getElementById('z3-narr').textContent = narr;
+
+  /* ---- ZONE 4 coach moments ---- */
+  document.getElementById('z4').innerHTML = coachMoments(rows).map(c=>
+    `<div class="coach"><div class="q">${c.q}</div><div class="src">${c.src}</div></div>`).join('');
+
+  /* ---- ZONE 5 ---- */
+  document.getElementById('z5-actions').innerHTML =
+    weeklyActions(rows).map(a=>`<li>${a}</li>`).join('');
+  const platform = [
+    `<li>Section 4 — Manufacturing and production is your next step.</li>`,
+    `<li>Your compliance roadmap travels with you into the next module.</li>`
+  ];
+  if(backwardReferral())
+    platform.push(`<li class="back">Haven't completed Section 2 — Sourcing and materials? That's worth revisiting before you finalize your product spec.</li>`);
+  document.getElementById('z5-platform').innerHTML = platform.join('');
+
+  document.getElementById('z5-terms').innerHTML = relevantTerms(rows).map(term=>
+    `<div class="term"><b>${term}</b> — ${GLOSSARY[term]}</div>`).join('');
+
+  /* flash the changed zone */
+  if(changed){
+    const map={stage:['z1'],category:['z1'],markets:['z1'],channel:['z1'],cert:['z1']};
+    document.querySelectorAll('.zone').forEach(z=>{
+      z.classList.remove('flash'); void z.offsetWidth; z.classList.add('flash');
+    });
+  }
+}
+
+/* ====================================================================
+   WIRE UP CONTROLS
+   ==================================================================== */
+document.getElementById('i-stage').addEventListener('change',e=>{ state.stage=e.target.value; render(true); });
+document.getElementById('i-cat').addEventListener('change',e=>{ state.category=e.target.value; render(true); });
+document.getElementById('i-channel').addEventListener('change',e=>{ state.channel=e.target.value; render(true); });
+document.getElementById('i-cert').addEventListener('change',e=>{ state.cert=e.target.value; render(true); });
+
+document.getElementById('i-market').addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip-toggle')) return;
+  const v=e.target.dataset.v;
+  if(state.markets.includes(v)){
+    if(state.markets.length===1) return; // keep at least one
+    state.markets=state.markets.filter(m=>m!==v);
+    e.target.classList.remove('on');
+  } else {
+    state.markets.push(v); e.target.classList.add('on');
+  }
+  render(true);
+});
+
+document.getElementById('i-testing').addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip-toggle')) return;
+  const v=e.target.dataset.v;
+  if(state.testing.includes(v)){
+    state.testing=state.testing.filter(x=>x!==v);
+    e.target.classList.remove('on');
+  } else {
+    state.testing.push(v); e.target.classList.add('on');
+  }
+  render(true);
+});
+
+/* initial paint */
+render(false);
+</script>
+
+</body>
+</html>
